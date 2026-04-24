@@ -10,7 +10,7 @@ import CoverLetterGenerator from './components/CoverLetter';
 import SalaryEstimator from './components/SalaryEstimator';
 import InterviewDebrief from './components/InterviewDebrief';
 
-import { Briefcase, Brain, ChevronRight, Target, LayoutDashboard, Settings, Activity, Sparkles, GitBranch, Mail, CircleDollarSign } from 'lucide-react';
+import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, CircleDollarSign } from 'lucide-react';
 import axios from 'axios';
 import { useCareerStore } from './store/useCareerStore';
 
@@ -76,7 +76,6 @@ function App() {
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar Navigation */}
         <aside className="w-72 glass border-r border-white/5 hidden lg:flex flex-col p-8 z-40 bg-black/20">
           <div className="flex items-center gap-4 mb-12">
             <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-2xl shadow-lg shadow-blue-500/20">
@@ -129,14 +128,9 @@ function App() {
                   <option className="bg-gray-900">ML Engineer</option>
                 </select>
              </div>
-             <button className="flex items-center gap-4 text-gray-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest">
-               <Settings size={18} />
-               System Config
-             </button>
           </div>
         </aside>
 
-        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_right,_#111827,_#000000)] relative">
           <div className="max-w-7xl mx-auto px-8 lg:px-12 py-12 relative z-10">
             {!resumeData ? (
@@ -154,7 +148,6 @@ function App() {
               </div>
             ) : (
               <div className="space-y-12">
-                {/* Global Stats Bar */}
                 <div className="glass-card p-6 rounded-3xl flex items-center justify-between border-white/10 shadow-2xl">
                   <div className="flex items-center gap-6">
                     <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg border border-white/10">
@@ -175,7 +168,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* Tab Rendering */}
                 <div className="min-h-[700px]">
                   {activeTab === 'dashboard' && (
                     <Dashboard onNavigate={setActiveTab} />
@@ -185,10 +177,6 @@ function App() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                       <div className="lg:col-span-4 space-y-8">
                         <div className="glass-card p-10 rounded-[3rem] border-white/10 shadow-2xl relative overflow-hidden group">
-                          <h3 className="text-xl font-black text-white mb-6 flex items-center gap-3 tracking-tighter">
-                            <Briefcase className="text-blue-500" size={24} />
-                            JOB TARGET
-                          </h3>
                           <textarea
                             placeholder="Paste the target Job Description to initiate neural comparison..."
                             className="w-full h-80 bg-black/40 p-6 rounded-[2rem] border border-white/5 focus:border-blue-500/50 focus:ring-0 resize-none text-sm text-gray-300 font-medium leading-relaxed transition-all custom-scrollbar"
@@ -201,7 +189,6 @@ function App() {
                             className="w-full mt-8 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:scale-[1.02] active:scale-95 disabled:bg-gray-800 disabled:grayscale transition-all shadow-2xl shadow-blue-600/20 flex items-center justify-center gap-3"
                           >
                             {loadingAts ? "NEURAL ANALYSIS IN PROGRESS..." : "RUN ATS CHECK"}
-                            {!loadingAts && <ChevronRight size={18} />}
                           </button>
                         </div>
                       </div>
@@ -213,7 +200,6 @@ function App() {
                           <div className="glass-card h-full min-h-[500px] rounded-[3rem] border border-dashed border-white/10 flex flex-col items-center justify-center text-gray-500 p-16 text-center group">
                             <Target size={64} className="text-gray-800 mb-8 group-hover:scale-110 transition-transform duration-500" />
                             <h3 className="text-3xl font-black text-gray-300 mb-4 tracking-tighter uppercase">Awaiting JD Input</h3>
-                            <p className="max-w-xs text-sm font-medium text-gray-500 leading-relaxed uppercase tracking-widest text-[10px]">Provide a Job Description to initialize the neural matching engine and generate your ATS scorecard.</p>
                           </div>
                         )}
                       </div>
