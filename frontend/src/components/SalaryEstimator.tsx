@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CircleDollarSign, TrendingUp, Zap, MapPin, Briefcase, Clock, Loader2, Info } from 'lucide-react';
+import { CircleDollarSign, TrendingUp, Zap, MapPin, Loader2, Info } from 'lucide-react';
 import axios from 'axios';
 import { useCareerStore } from '../store/useCareerStore';
 

@@ -52,7 +52,7 @@ export class SpeechToText {
         this.recognition.interimResults = true;
         this.recognition.lang = 'en-US';
 
-        this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+        this.recognition.onresult = (event: any) => {
           let interimTranscript = '';
           let finalTranscript = '';
 

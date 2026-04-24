@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Zap, Target, ShieldCheck, Info, TrendingUp, Download, Loader2 } from 'lucide-react';
+import { Sparkles, Zap, Target, ShieldCheck, Info, TrendingUp, Download, Loader2, Check } from 'lucide-react';
 import axios from 'axios';
 import JDTailoringResult from './JDTailoringResult';
 import { PDFDownloadLink } from '@react-pdf/renderer';

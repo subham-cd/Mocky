@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Upload, FileText, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Upload, FileText, AlertCircle, ShieldCheck } from 'lucide-react';
 
 interface ResumeUploadProps {
   onUploadSuccess: (data: any) => void;
