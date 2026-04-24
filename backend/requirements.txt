@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pdfplumber
+spacy
+groq
+python-multipart
+scikit-learn
+pydantic
+pydantic-settings
+python-dotenv
+python-jose[cryptography]
+passlib[bcrypt]
