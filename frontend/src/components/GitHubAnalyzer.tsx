@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { GitBranch, TrendingUp, Check, AlertTriangle, ChevronRight, Loader2, Star, Users, BookOpen, Search } from 'lucide-react';
+import { GitBranch, TrendingUp, Check, AlertTriangle, Loader2, Star, Users, BookOpen, Search } from 'lucide-react';
 import axios from 'axios';
 
 const GitHubAnalyzer: React.FC = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [username, setUsername] = useState('');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -29,7 +30,7 @@ const GitHubAnalyzer: React.FC = () => {
     setError(null);
     try {
       console.log("Sending POST to /github/analyze...");
-      const res = await axios.post('http://localhost:8000/github/analyze', { username: cleanUsername });
+      const res = await axios.post(`${API_BASE_URL}/github/analyze`, { username: cleanUsername });
       console.log("Response received:", res.data);
       setResult(res.data);
     } catch (err: any) {
@@ -164,7 +165,7 @@ const GitHubAnalyzer: React.FC = () => {
                    <div className="space-y-4">
                       {result.analysis.strengths.map((s: string, i: number) => (
                          <div key={i} className="flex items-start gap-4 p-4 bg-green-500/5 rounded-2xl border border-green-500/10">
-                            <div className="mt-1.5 w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_8px_#22c55e]"></div>
+                            <div className="mt-1.5 w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_8px_#10b981]"></div>
                             <p className="text-xs font-bold text-gray-300">{s}</p>
                          </div>
                       ))}

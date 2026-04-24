@@ -34,7 +34,6 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-      {/* Score Header */}
       <div className="glass-card p-10 rounded-[3rem] border-white/10 relative overflow-hidden group">
         <div className={`absolute top-0 right-0 w-64 h-64 ${bg}/5 blur-[80px] rounded-full`}></div>
         
@@ -78,9 +77,7 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Section Table & Keywords */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Table Area */}
         <div className="lg:col-span-7 space-y-8">
           <div className="glass-card p-8 rounded-[2.5rem] border-white/10 overflow-hidden">
              <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
@@ -146,7 +143,6 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
           </div>
         </div>
 
-        {/* Action Area */}
         <div className="lg:col-span-5 space-y-8">
            <div className="glass-card p-8 rounded-[2.5rem] border-orange-500/20 bg-orange-500/5">
               <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">

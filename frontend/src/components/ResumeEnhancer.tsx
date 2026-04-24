@@ -12,6 +12,7 @@ interface ResumeEnhancerProps {
 }
 
 const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole, jobDescription }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'general' | 'tailor'>('general');
   const [result, setResult] = useState<any>(null);
@@ -21,7 +22,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
     setMode('general');
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8000/resume/enhance', {
+      const response = await axios.post(`${API_BASE_URL}/resume/enhance`, {
         resume_text: resumeText,
         target_role: targetRole
       });
@@ -39,7 +40,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
     setMode('tailor');
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8000/resume/tailor', {
+      const response = await axios.post(`${API_BASE_URL}/resume/tailor`, {
         resume_text: resumeText,
         job_description: jobDescription
       });

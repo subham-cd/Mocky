@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Sparkles, Copy, Check, Loader2, Send, Building2, FileText, ChevronRight } from 'lucide-react';
+import { Mail, Sparkles, Copy, Check, Loader2, Send, Building2, FileText } from 'lucide-react';
 import axios from 'axios';
 import { useCareerStore } from '../store/useCareerStore';
 
@@ -14,10 +14,11 @@ const CoverLetterGenerator: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const generate = async () => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     if (!resumeData || !jdText.trim() || !company.trim()) return;
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:8000/coverletter/generate', {
+      const res = await axios.post(`${API_BASE_URL}/coverletter/generate`, {
         resume_data: resumeData,
         jd_text: jdText,
         company_name: company,
@@ -40,7 +41,6 @@ const CoverLetterGenerator: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-700">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-         {/* Input Panel */}
          <div className="lg:col-span-5 space-y-8">
             <div className="glass-card p-10 rounded-[3rem] border-white/10 shadow-2xl relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-10 opacity-5">
@@ -99,11 +99,9 @@ const CoverLetterGenerator: React.FC = () => {
             </div>
          </div>
 
-         {/* Result Panel */}
          <div className="lg:col-span-7">
             {result ? (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-10 duration-700">
-                  {/* Selling Points */}
                   <div className="flex flex-wrap gap-3">
                      {result.key_selling_points?.map((p: string, i: number) => (
                         <span key={i} className="px-4 py-2 bg-blue-500/10 text-blue-400 text-[10px] font-black rounded-full border border-blue-500/20 uppercase tracking-widest flex items-center gap-2">

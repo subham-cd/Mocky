@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ResumeUpload from './components/ResumeUpload';
 import ScoreCard from './components/ScoreCard';
 import InterviewRoom from './components/InterviewRoom';
@@ -22,7 +22,7 @@ function App() {
     targetRole, setTargetRole, 
     atsResult, setATSResult, 
     interviewReport, setInterviewReport,
-    saveSession, sessions
+    saveSession
   } = useCareerStore();
 
   const [activeTab, setActiveTab] = useState('dashboard');

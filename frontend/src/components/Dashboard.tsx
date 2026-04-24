@@ -3,7 +3,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Activity, Target, Zap, ArrowUpRight, Clock, ExternalLink, TrendingUp, ChevronRight } from 'lucide-react';
+import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight } from 'lucide-react';
 import { useCareerStore } from '../store/useCareerStore';
 import { useHydration } from '../hooks/useHydration';
 

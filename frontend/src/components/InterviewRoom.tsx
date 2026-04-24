@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Play, Send, CheckCircle2, AlertCircle, Award, RefreshCcw, User, MessageSquare, Info, Zap, BarChart3 } from 'lucide-react';
+import { Mic, MicOff, Play, Send, CheckCircle2, AlertCircle, Award, RefreshCcw, MessageSquare, Info, Zap, BarChart3 } from 'lucide-react';
 import { SpeechToText } from '../utils/speechApi';
 import axios from 'axios';
 
@@ -9,6 +9,7 @@ interface InterviewRoomProps {
 }
 
 const InterviewRoom: React.FC<InterviewRoomProps> = ({ resumeText, role }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [status, setStatus] = useState<'idle' | 'generating' | 'ready' | 'interviewing' | 'finished'>('idle');
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -34,7 +35,7 @@ const InterviewRoom: React.FC<InterviewRoomProps> = ({ resumeText, role }) => {
   const generateQuestions = async () => {
     setStatus('generating');
     try {
-      const response = await axios.post('http://localhost:8000/interview/generate-questions', {
+      const response = await axios.post(`${API_BASE_URL}/interview/generate-questions`, {
         resume_text: resumeText,
         role: role
       });
@@ -69,7 +70,7 @@ const InterviewRoom: React.FC<InterviewRoomProps> = ({ resumeText, role }) => {
 
     setLoadingEval(true);
     try {
-      const response = await axios.post('http://localhost:8000/interview/evaluate', {
+      const response = await axios.post(`${API_BASE_URL}/interview/evaluate`, {
         question: questions[currentQuestionIndex].question,
         answer: fullAnswer,
         what_we_look_for: questions[currentQuestionIndex].what_we_look_for

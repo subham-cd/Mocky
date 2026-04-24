@@ -31,7 +31,6 @@ const SalaryEstimator: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-700">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-         {/* Input Panel */}
          <div className="lg:col-span-4 space-y-8">
             <div className="glass-card p-10 rounded-[3rem] border-white/10 shadow-2xl relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-10 opacity-5">
@@ -83,7 +82,6 @@ const SalaryEstimator: React.FC = () => {
             </div>
          </div>
 
-         {/* Result Panel */}
          <div className="lg:col-span-8">
             {result ? (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-10 duration-700">

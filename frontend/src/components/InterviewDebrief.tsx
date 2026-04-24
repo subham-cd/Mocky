@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
-import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp, BarChart3 } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp } from 'lucide-react';
 
 interface InterviewDebriefProps {
   report: any;
@@ -190,7 +190,7 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart }
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 pt-10">
            <button 
              onClick={onRestart}
-             className="px-12 py-5 bg-white text-black rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95 flex items-center gap-3"
+             className="px-12 py-5 bg-white text-black rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"
            >
               <RefreshCcw size={16} />
               Re-Initialize Simulation
