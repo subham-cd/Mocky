@@ -27,17 +27,17 @@ async def generate_questions_endpoint(data: dict):
     role = data.get("role", "Software Engineer")
     
     system_prompt = """
-    You are a Senior Technical Interviewer at a Tier-1 Tech Company.
-    Your goal is to generate 6 high-impact interview questions tailored to the candidate's resume and target role.
+    You are a Senior Technical Interviewer. Generate 6 high-impact interview questions.
+    Return ONLY a JSON array of objects. Do not include any other text.
     
-    Return ONLY a JSON array of objects:
+    Format:
     [
       {
         "id": 1,
-        "type": "Technical|Behavioral|Resume|Situational",
-        "question": "The actual question text...",
-        "what_we_look_for": "A 1-sentence explanation of the ideal answer criteria.",
-        "difficulty": "Easy|Medium|Hard"
+        "type": "Technical",
+        "question": "text",
+        "what_we_look_for": "criteria",
+        "difficulty": "Medium"
       }
     ]
     """
