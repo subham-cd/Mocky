@@ -14,6 +14,8 @@ import { Briefcase, Brain, ChevronRight, Target, LayoutDashboard, Settings, Acti
 import axios from 'axios';
 import { useCareerStore } from './store/useCareerStore';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 function App() {
   const { 
     resumeData, setResumeData, 
@@ -38,7 +40,7 @@ function App() {
     if (!resumeData || !jd) return;
     setLoadingAts(true);
     try {
-      const response = await axios.post('http://localhost:8000/ats/score', {
+      const response = await axios.post(`${API_BASE_URL}/ats/score`, {
         resume_text: resumeData.raw_text,
         job_description: jd
       });

@@ -8,7 +8,7 @@ app = FastAPI(title="Mocky AI API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development, allow all. Restrict in production.
+    allow_origins=["*"], # In production, you can list your specific Vercel URL here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,7 +23,4 @@ app.include_router(salary.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to CareerCraft AI API"}
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    return {"message": "Welcome to Mocky AI API - Production Active"}

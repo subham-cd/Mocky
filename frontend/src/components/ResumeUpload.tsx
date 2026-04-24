@@ -26,12 +26,13 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
 
     setLoading(true);
     setError(null);
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+setLoading(true);
+const formData = new FormData();
+formData.append('file', file);
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await axios.post('http://localhost:8000/resume/parse', formData, {
+try {
+  const response = await axios.post(`${API_BASE_URL}/resume/parse`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

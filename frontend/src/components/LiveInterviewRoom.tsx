@@ -118,11 +118,12 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   };
 
   const finalizeInterview = async () => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     speechApiRef.current?.stop();
     setLoading(true);
     setAvatarState("thinking");
     try {
-      const res = await axios.post("http://localhost:8000/interview/live-report", {
+      const res = await axios.post(`${API_BASE_URL}/interview/live-report`, {
         conversation_history: conversationHistory,
         target_role: targetRole
       });
@@ -139,6 +140,7 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     const fullAnswer = (transcript + ' ' + interimTranscript).trim();
     if (!fullAnswer || isPaused) return;
 
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     speechApiRef.current?.stop();
     const updatedHistory = [
       ...conversationHistory,
@@ -153,10 +155,11 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   };
 
   const startInterview = async () => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     setLoading(true);
     setAvatarState("thinking");
     try {
-      const res = await axios.post("http://localhost:8000/interview/live-start", {
+      const res = await axios.post(`${API_BASE_URL}/interview/live-start`, {
         resume_data: resumeData,
         target_role: targetRole
       });

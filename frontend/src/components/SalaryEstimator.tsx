@@ -11,9 +11,10 @@ const SalaryEstimator: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const estimate = async () => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:8000/salary/estimate', {
+      const res = await axios.post(`${API_BASE_URL}/salary/estimate`, {
         skills: resumeData?.skills || [],
         role: targetRole,
         experience_years: exp,
