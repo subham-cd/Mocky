@@ -8,7 +8,11 @@ app = FastAPI(title="Mocky AI API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, you can list your specific Vercel URL here
+    allow_origins=[
+        "https://mocky-j1lz.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:5174",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
