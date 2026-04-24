@@ -1,11 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Send, Award, Zap, Loader2, Info, Mic, Pause, Square, MicOff, Download } from 'lucide-react';
+import { Play, Send, Zap, Loader2, Info, Mic, Pause, Square, MicOff } from 'lucide-react';
 import axios from 'axios';
 import InterviewerAvatar from './InterviewerAvatar';
-import { useCareerStore } from '../store/useCareerStore';
 import { SpeechToText } from '../utils/speechApi';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import ResumePDF from './ResumePDF';
 
 interface LiveInterviewRoomProps {
   resumeData: any;
@@ -14,6 +11,7 @@ interface LiveInterviewRoomProps {
 }
 
 const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targetRole, onInterviewComplete }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [avatarState, setAvatarState] = useState<'idle' | 'speaking' | 'listening' | 'thinking'>('idle');
@@ -74,7 +72,7 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     setCurrentQuestion("");
     
     try {
-      const response = await fetch('http://localhost:8000/interview/live-turn-stream', {
+      const response = await fetch(`${API_BASE_URL}/interview/live-turn-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -118,7 +116,6 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   };
 
   const finalizeInterview = async () => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     speechApiRef.current?.stop();
     setLoading(true);
     setAvatarState("thinking");
@@ -140,7 +137,6 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     const fullAnswer = (transcript + ' ' + interimTranscript).trim();
     if (!fullAnswer || isPaused) return;
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     speechApiRef.current?.stop();
     const updatedHistory = [
       ...conversationHistory,
@@ -155,7 +151,6 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   };
 
   const startInterview = async () => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     setLoading(true);
     setAvatarState("thinking");
     try {

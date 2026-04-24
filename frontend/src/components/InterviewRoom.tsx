@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Play, Send, CheckCircle2, AlertCircle, Award, RefreshCcw, User, MessageSquare, Info, Zap, ChevronRight, BarChart3 } from 'lucide-react';
+import { Mic, MicOff, Play, Send, CheckCircle2, AlertCircle, Award, RefreshCcw, User, MessageSquare, Info, Zap, BarChart3 } from 'lucide-react';
 import { SpeechToText } from '../utils/speechApi';
 import axios from 'axios';
 
