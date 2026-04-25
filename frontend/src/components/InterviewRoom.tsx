@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Play, Send, CheckCircle2, AlertCircle, Award, RefreshCcw, MessageSquare, Info, Zap, BarChart3 } from 'lucide-react';
+import { Mic, MicOff, Play, Send, CheckCircle2, AlertCircle, Award, RefreshCcw, MessageSquare, Info, Zap, BarChart3, Loader2 } from 'lucide-react';
 import { SpeechToText } from '../utils/speechApi';
 import axios from 'axios';
 
@@ -84,7 +84,7 @@ const InterviewRoom: React.FC<InterviewRoomProps> = ({ resumeText, role }) => {
         answer: fullAnswer,
         what_we_look_for: currentQ?.what_we_look_for
       });
-      setEvaluations(prev => [...prev, response.data]);
+      setEvaluations(prev => [...prev, { ...response.data, question: currentQ?.question }]);
       setTranscript('');
       setInterimTranscript('');
       if (currentQuestionIndex < questions.length - 1) setCurrentQuestionIndex(prev => prev + 1);

@@ -1,19 +1,31 @@
 import json
 import re
 
-def safe_parse_groq_json(text: str) -> dict:
+def safe_parse_groq_json(text: str):
     """
-    Safely parse JSON from Groq response.
-    Handles markdown fences, trailing commas, and other common issues.
+    Safely parse JSON (Object or Array) from Groq response.
+    Handles markdown fences, and other common issues.
     """
     # Remove markdown code fences
     text = re.sub(r'```(?:json)?\s*', '', text)
     text = re.sub(r'```\s*', '', text)
     text = text.strip()
     
-    # Find JSON object boundaries
-    start = text.find('{')
-    end = text.rfind('}') + 1
+    # Find JSON boundaries - can be { ... } or [ ... ]
+    start_obj = text.find('{')
+    start_arr = text.find('[')
+    
+    # Determine which comes first
+    if start_obj != -1 and (start_arr == -1 or start_obj < start_arr):
+        start = start_obj
+        end = text.rfind('}') + 1
+    elif start_arr != -1:
+        start = start_arr
+        end = text.rfind(']') + 1
+    else:
+        start = -1
+        end = -1
+
     if start != -1 and end > start:
         text = text[start:end]
     

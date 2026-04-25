@@ -4,6 +4,7 @@ import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks } from 'lucide-
 interface ScoreCardProps {
   data: {
     ats_score: number; keyword_match_percent: number; matched_keywords: string[]; missing_keywords: string[]; section_scores: Record<string, number>; critical_fixes: string[]; format_issues?: string[];
+    isSimulation?: boolean;
   };
 }
 
@@ -15,6 +16,56 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
   };
 
   const { grade, color, bg } = getGrade(data.ats_score);
+
+  if (data.isSimulation) {
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="glass-card p-10 rounded-[3rem] border-white/10 relative overflow-hidden group bg-gradient-to-br from-yellow-500/5 to-transparent">
+          <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500/30"></div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+            <div>
+               <h3 className="text-3xl font-black text-white uppercase tracking-tighter">JD Neural Intelligence</h3>
+               <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mt-2">Simulation Mode: Market Analysis Active</p>
+            </div>
+            <div className="flex items-center gap-4">
+               <div className="text-5xl font-black text-white">HIGH<span className="text-xl opacity-40"> DEMAND</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+           <div className="glass-card p-8 rounded-[2.5rem] border-white/10">
+              <h4 className="text-[10px] font-black text-blue-500 uppercase mb-6 flex items-center gap-2"><Zap size={16} /> Critical Skill Keywords</h4>
+              <div className="flex flex-wrap gap-2">
+                 {data.missing_keywords.map((kw, i) => (
+                   <span key={i} className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[10px] font-bold text-blue-300 uppercase tracking-wider">
+                      {kw}
+                   </span>
+                 ))}
+              </div>
+           </div>
+
+           <div className="glass-card p-8 rounded-[2.5rem] border-white/10">
+              <h4 className="text-[10px] font-black text-green-500 uppercase mb-6 flex items-center gap-2"><ListChecks size={16} /> Core Requirements</h4>
+              <div className="space-y-3">
+                 {data.critical_fixes.map((req, i) => (
+                   <p key={i} className="text-xs font-bold text-gray-400 flex gap-3 italic">
+                      <span className="text-green-500">•</span> {req}
+                   </p>
+                 ))}
+              </div>
+           </div>
+        </div>
+
+        <div className="glass-card p-10 rounded-[3rem] border-white/10 text-center">
+           <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Neural Suggestion</h4>
+           <p className="text-xl font-medium text-gray-300 leading-relaxed italic">
+             "Your target role emphasizes {data.missing_keywords[0]} and {data.missing_keywords[1]}. Focus your practice sessions on these domains."
+           </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">

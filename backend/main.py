@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from routers import resume, ats, interview, github, coverletter, salary
+from routers import resume, ats, interview, github, coverletter, salary, coding, roadmap
 
 app = FastAPI(title="Mocky AI API")
 
@@ -24,6 +24,8 @@ app.include_router(interview.router)
 app.include_router(github.router)
 app.include_router(coverletter.router)
 app.include_router(salary.router)
+app.include_router(coding.router)
+app.include_router(roadmap.router)
 
 @app.get("/")
 async def root():

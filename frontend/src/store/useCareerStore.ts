@@ -65,12 +65,20 @@ export const useCareerStore = create<CareerState>()(
       }),
       
       getCareerHealth: () => {
-        const { atsResult, interviewReport, resumeData } = get();
+        const { atsResult, interviewReport, resumeData, sessions } = get();
         const ats = atsResult?.ats_score ?? 0;
         const interview = interviewReport?.overall_score ?? 0;
-        const profile = resumeData ? 80 : 0;
-        if (!ats && !interview) return 0;
-        return Math.round((ats * 0.4) + (interview * 0.4) + (profile * 0.2));
+        const codingSessions = sessions.filter(s => s.type === 'coding');
+        const codingScore = codingSessions.length > 0 
+          ? Math.round(codingSessions.reduce((acc, s) => acc + (s.interview_score || 0), 0) / codingSessions.length)
+          : 0;
+
+        const profile = resumeData ? 80 : 40; // Base profile score higher if resume exists
+        
+        if (!ats && !interview && !codingScore) return 0;
+        
+        // Balanced weighted average
+        return Math.round((ats * 0.3) + (interview * 0.4) + (codingScore * 0.2) + (profile * 0.1));
       },
 
       clearAll: () => set({ resumeData: null, atsResult: null, interviewReport: null, sessions: [] })

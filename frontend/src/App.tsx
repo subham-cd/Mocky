@@ -10,9 +10,11 @@ import CoverLetterGenerator from './components/CoverLetter';
 import SalaryEstimator from './components/SalaryEstimator';
 import InterviewDebrief from './components/InterviewDebrief';
 
-import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, CircleDollarSign } from 'lucide-react';
+import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, CircleDollarSign, Terminal, Zap, Map } from 'lucide-react';
 import axios from 'axios';
 import { useCareerStore } from './store/useCareerStore';
+import CodingLab from './components/CodingLab';
+import CareerRoadmap from './components/CareerRoadmap';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -30,22 +32,41 @@ function App() {
   const [jd, setJd] = useState('');
   const [interviewMode, setInterviewMode] = useState<'practice' | 'live'>('practice');
   const [showDebrief, setShowDebrief] = useState(false);
+  const [isSkipMode, setIsSkipMode] = useState(false);
 
   const handleUploadSuccess = (data: any) => {
     setResumeData(data);
-    setActiveTab('ats');
+    setIsSkipMode(false);
+    setActiveTab('dashboard');
+  };
+
+  const handleQuickStart = () => {
+    setATSResult(null);
+    setInterviewReport(null);
+    setIsSkipMode(true);
+    setActiveTab('dashboard');
   };
 
   const handleAtsCheck = async () => {
-    if (!resumeData || !jd) return;
+    if (!jd) return;
     setLoadingAts(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/ats/score`, {
-        resume_text: resumeData.raw_text,
-        job_description: jd
-      });
-      setATSResult(response.data);
-      saveSession({ type: 'ats', ats_score: response.data.ats_score });
+      if (resumeData) {
+        // Standard ATS Check
+        const response = await axios.post(`${API_BASE_URL}/ats/score`, {
+          resume_text: resumeData.raw_text,
+          job_description: jd
+        });
+        setATSResult(response.data);
+        saveSession({ type: 'ats', ats_score: response.data.ats_score });
+      } else {
+        // Skip Mode: JD Keyword Extraction & Analysis
+        const response = await axios.post(`${API_BASE_URL}/ats/score`, {
+          resume_text: "GUEST_SIMULATION_MODE", // Trigger different logic or just handle on frontend
+          job_description: jd
+        });
+        setATSResult({ ...response.data, isSimulation: true });
+      }
     } catch (err) {
       console.error("ATS Error:", err);
     } finally {
@@ -91,10 +112,11 @@ function App() {
               { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Neural Dashboard' },
               { id: 'ats', icon: <Target size={18} />, label: 'ATS Engine' },
               { id: 'enhance', icon: <Sparkles size={18} />, label: 'Resume AI' },
+              { id: 'coding', icon: <Terminal size={18} />, label: 'Coding Lab' },
               { id: 'interview', icon: <Activity size={18} />, label: 'Live Interview' },
               { id: 'github', icon: <GitBranch size={18} />, label: 'GitHub Audit' },
               { id: 'cover', icon: <Mail size={18} />, label: 'Cover Letter' },
-              { id: 'salary', icon: <CircleDollarSign size={18} />, label: 'Salary Estimator' },
+              { id: 'roadmap', icon: <Map size={18} />, label: 'Career Roadmap' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -133,37 +155,79 @@ function App() {
 
         <main className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_right,_#111827,_#000000)] relative">
           <div className="max-w-7xl mx-auto px-8 lg:px-12 py-12 relative z-10">
-            {!resumeData ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center animate-in fade-in zoom-in-95 duration-1000">
-                <div className="mb-8 px-6 py-2 rounded-full glass border-white/10 text-[10px] font-black text-blue-400 tracking-[0.3em] uppercase">
-                  Tech Sageathon 2K26 Entry
+            {(!resumeData && !isSkipMode) ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in zoom-in-95 duration-1000">
+                <div className="mb-12 px-8 py-3 rounded-full glass border-white/10 text-[11px] font-black text-blue-400 tracking-[0.4em] uppercase bg-blue-500/5">
+                  Tech Sageathon 2K26 • Neural Intelligence
                 </div>
-                <h2 className="text-7xl lg:text-9xl font-black text-white mb-8 tracking-tighter leading-none">
-                  AI FOR <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">PLACEMENT</span> SUCCESS
+                
+                <h2 className="text-7xl lg:text-[10rem] font-black text-white mb-8 tracking-tighter leading-[0.85]">
+                  MASTER YOUR <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">CAREER PATH</span>
                 </h2>
-                <p className="text-2xl text-gray-400 max-w-3xl mb-16 font-medium leading-relaxed">
-                  The ultimate Career Operating System. Analyze, optimize, and master your journey with our state-of-the-art neural engine.
+                
+                <p className="text-xl lg:text-2xl text-gray-400 max-w-4xl mb-24 font-medium leading-relaxed">
+                  The ultimate Career Operating System. Analyze your codebase, optimize your resume, and dominate interviews with our state-of-the-art neural engine.
                 </p>
-                <ResumeUpload onUploadSuccess={handleUploadSuccess} />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
+                  {/* Primary Path: Resume Upload */}
+                  <div className="glass-card p-12 rounded-[3.5rem] border-white/10 bg-gradient-to-br from-blue-600/5 to-transparent flex flex-col items-center text-center group hover:border-blue-500/30 transition-all duration-500 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                      <Sparkles size={120} />
+                    </div>
+                    <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-blue-600/20 group-hover:scale-110 transition-transform">
+                      <Mail size={32} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter">Personalized Audit</h3>
+                    <p className="text-sm text-gray-500 mb-10 leading-relaxed font-medium">Upload your resume for a custom-tailored ATS analysis and personalized interview sessions.</p>
+                    <ResumeUpload onUploadSuccess={handleUploadSuccess} />
+                  </div>
+
+                  {/* Secondary Path: Quick Start */}
+                  <div className="glass-card p-12 rounded-[3.5rem] border-white/10 bg-gradient-to-br from-indigo-600/5 to-transparent flex flex-col items-center text-center group hover:border-indigo-500/30 transition-all duration-500 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                      <Zap size={120} />
+                    </div>
+                    <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                      <Brain size={32} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter">Instant Simulation</h3>
+                    <p className="text-sm text-gray-500 mb-10 leading-relaxed font-medium">Bypass the upload and jump straight into role-based assessments and coding challenges.</p>
+                    <button 
+                      onClick={handleQuickStart}
+                      className="w-full py-6 bg-white text-black hover:bg-indigo-600 hover:text-white rounded-[2rem] font-black text-xs tracking-[0.3em] uppercase transition-all shadow-2xl flex items-center justify-center gap-4 group-hover:translate-y-[-4px]"
+                    >
+                      Quick Start <Zap size={18} className="fill-current" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Footer Badges */}
+                <div className="mt-32 flex flex-wrap justify-center gap-12 opacity-30 grayscale hover:grayscale-0 transition-all duration-1000">
+                   <div className="flex items-center gap-3 font-black text-xs tracking-widest text-white uppercase"><Terminal size={18} /> Neural Review</div>
+                   <div className="flex items-center gap-3 font-black text-xs tracking-widest text-white uppercase"><Activity size={18} /> Live Assessment</div>
+                   <div className="flex items-center gap-3 font-black text-xs tracking-widest text-white uppercase"><Target size={18} /> ATS Verified</div>
+                </div>
               </div>
             ) : (
               <div className="space-y-12">
                 <div className="glass-card p-6 rounded-3xl flex items-center justify-between border-white/10 shadow-2xl">
                   <div className="flex items-center gap-6">
                     <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg border border-white/10">
-                      {resumeData.name?.[0] || 'U'}
+                      {resumeData?.name?.[0] || 'G'}
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-white tracking-tight">{resumeData.name || 'Candidate'}</h3>
+                      <h3 className="text-xl font-black text-white tracking-tight">{resumeData?.name || 'Guest Simulator'}</h3>
                       <p className="text-xs text-gray-500 font-black uppercase tracking-widest">{targetRole}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <button 
-                      onClick={() => setResumeData(null)}
+                      onClick={() => { setResumeData(null); setIsSkipMode(false); }}
                       className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
                     >
-                      Purge Data
+                      Exit Session
                     </button>
                   </div>
                 </div>
@@ -185,10 +249,10 @@ function App() {
                           ></textarea>
                           <button
                             onClick={handleAtsCheck}
-                            disabled={!jd || loadingAts}
+                            disabled={!jd || loadingAts || !resumeData}
                             className="w-full mt-8 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-xs tracking-[0.2em] uppercase hover:scale-[1.02] active:scale-95 disabled:bg-gray-800 disabled:grayscale transition-all shadow-2xl shadow-blue-600/20 flex items-center justify-center gap-3"
                           >
-                            {loadingAts ? "NEURAL ANALYSIS IN PROGRESS..." : "RUN ATS CHECK"}
+                            {!resumeData ? "RESUME REQUIRED" : (loadingAts ? "NEURAL ANALYSIS IN PROGRESS..." : "RUN ATS CHECK")}
                           </button>
                         </div>
                       </div>
@@ -207,11 +271,24 @@ function App() {
                   )}
 
                   {activeTab === 'enhance' && (
-                    <ResumeEnhancer 
-                      resumeText={resumeData.raw_text} 
-                      targetRole={targetRole} 
-                      jobDescription={jd}
-                    />
+                    resumeData ? (
+                      <ResumeEnhancer 
+                        resumeText={resumeData.raw_text} 
+                        targetRole={targetRole} 
+                        jobDescription={jd}
+                      />
+                    ) : (
+                      <div className="glass-card p-20 rounded-[3rem] text-center border-white/10">
+                        <Sparkles size={64} className="text-gray-800 mx-auto mb-8" />
+                        <h3 className="text-2xl font-black text-white uppercase mb-4">Resume Required</h3>
+                        <p className="text-gray-500 mb-8">This module requires a parsed resume to enhance.</p>
+                        <button onClick={() => { setIsSkipMode(false); setResumeData(null); }} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">Upload Resume</button>
+                      </div>
+                    )
+                  )}
+
+                  {activeTab === 'coding' && (
+                    <CodingLab role={targetRole} />
                   )}
 
                   {activeTab === 'interview' && (
@@ -234,10 +311,10 @@ function App() {
                        </div>
                        
                        {interviewMode === 'practice' ? (
-                         <InterviewRoom resumeText={resumeData.raw_text} role={targetRole} />
+                         <InterviewRoom resumeText={resumeData?.raw_text || "General AI professional profile"} role={targetRole} />
                        ) : (
                          <LiveInterviewRoom 
-                           resumeData={resumeData} 
+                           resumeData={resumeData || { name: "Guest", raw_text: "General professional seeking " + targetRole }} 
                            targetRole={targetRole} 
                            onInterviewComplete={handleInterviewComplete}
                          />
@@ -247,7 +324,7 @@ function App() {
 
                   {activeTab === 'github' && <GitHubAnalyzer />}
                   {activeTab === 'cover' && <CoverLetterGenerator />}
-                  {activeTab === 'salary' && <SalaryEstimator />}
+                  {activeTab === 'roadmap' && <CareerRoadmap />}
                 </div>
               </div>
             )}

@@ -28,24 +28,29 @@ async def generate_questions_endpoint(data: dict):
     
     system_prompt = """
     You are a Senior Technical Interviewer. Generate 6 high-impact interview questions.
-    Return ONLY a JSON array of objects. Do not include any other text.
+    Return a JSON object with a key "questions" containing an array of 6 question objects.
     
     Format:
-    [
-      {
-        "id": 1,
-        "type": "Technical",
-        "question": "text",
-        "what_we_look_for": "criteria",
-        "difficulty": "Medium"
-      }
-    ]
+    {
+      "questions": [
+        {
+          "id": 1,
+          "type": "Technical",
+          "question": "text",
+          "what_we_look_for": "criteria",
+          "difficulty": "Medium"
+        }
+      ]
+    }
     """
     user_prompt = f"Role: {role}\nResume:\n{resume_text}"
     
     try:
         raw_json = await groq_client.get_json_completion(user_prompt, system_prompt)
-        return safe_parse_groq_json(raw_json)
+        parsed = safe_parse_groq_json(raw_json)
+        if isinstance(parsed, dict) and "questions" in parsed:
+            return parsed["questions"]
+        return parsed # Fallback if it's already an array
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -167,7 +172,8 @@ async def evaluate_answer_endpoint(data: dict):
       "overall": <0-10>,
       "strengths": ["..."],
       "improvements": ["..."],
-      "ideal_answer_hint": "..."
+      "ideal_answer_hint": "...",
+      "feedback": "A concise 2-3 sentence summary of the performance and how to improve."
     }
     """
     user_prompt = f"Question: {question}\nExpected: {expected}\nCandidate Answer: {answer}"
