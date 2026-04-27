@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks } from 'lucide-react';
+import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks, Zap } from 'lucide-react';
 
 interface ScoreCardProps {
   data: {
