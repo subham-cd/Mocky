@@ -7,7 +7,7 @@ interface ResumeUploadProps {
 }
 
 const ResumeUpload: React.FC<ResumeUploadProps> = ({ onUploadSuccess }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

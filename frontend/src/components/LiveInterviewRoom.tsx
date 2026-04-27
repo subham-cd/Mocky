@@ -11,7 +11,7 @@ interface LiveInterviewRoomProps {
 }
 
 const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targetRole, onInterviewComplete }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [avatarState, setAvatarState] = useState<'idle' | 'speaking' | 'listening' | 'thinking'>('idle');

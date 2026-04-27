@@ -16,7 +16,7 @@ import { useCareerStore } from './store/useCareerStore';
 import CodingLab from './components/CodingLab';
 import CareerRoadmap from './components/CareerRoadmap';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
 
 function App() {
   const { 

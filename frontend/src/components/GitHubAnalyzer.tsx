@@ -3,7 +3,7 @@ import { GitBranch, TrendingUp, Check, AlertTriangle, Loader2, Star, Search, Cal
 import axios from 'axios';
 
 const GitHubAnalyzer: React.FC = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
   const [username, setUsername] = useState('');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
