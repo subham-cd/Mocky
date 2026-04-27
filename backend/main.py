@@ -8,12 +8,7 @@ app = FastAPI(title="Mocky AI API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://mocky-p3ln.vercel.app",
-        "https://mocky-j1lz.vercel.app",
-        "http://localhost:5173",
-        "http://localhost:5174",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
