@@ -12,7 +12,7 @@ interface ResumeEnhancerProps {
 }
 
 const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole, jobDescription }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'general' | 'tailor'>('general');
   const [result, setResult] = useState<any>(null);

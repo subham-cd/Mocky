@@ -14,7 +14,7 @@ const CoverLetterGenerator: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const generate = async () => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
     if (!resumeData || !jdText.trim() || !company.trim()) return;
     setLoading(true);
     try {

@@ -9,7 +9,7 @@ interface InterviewRoomProps {
 }
 
 const InterviewRoom: React.FC<InterviewRoomProps> = ({ resumeText, role }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
   const [status, setStatus] = useState<'idle' | 'generating' | 'ready' | 'interviewing' | 'finished'>('idle');
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
