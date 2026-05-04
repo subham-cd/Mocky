@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks, Zap } from 'lucide-react';
+import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks, Zap, Info, Target, Sparkles } from 'lucide-react';
 
 interface ScoreCardProps {
   data: {
@@ -20,12 +20,15 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
   if (data.isSimulation) {
     return (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        {/* Simulation Header */}
         <div className="glass-card p-10 rounded-[3rem] border-white/10 relative overflow-hidden group bg-gradient-to-br from-yellow-500/5 to-transparent">
           <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500/30"></div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-10">
             <div>
-               <h3 className="text-3xl font-black text-white uppercase tracking-tighter">JD Neural Intelligence</h3>
-               <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mt-2">Simulation Mode: Market Analysis Active</p>
+               <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Market Pulse Analysis</h3>
+               <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mt-2 flex items-center gap-2">
+                  <Info size={12} /> Simulation Active: Projecting based on Role Benchmarks
+               </p>
             </div>
             <div className="flex items-center gap-4">
                <div className="text-5xl font-black text-white">HIGH<span className="text-xl opacity-40"> DEMAND</span></div>
@@ -34,33 +37,33 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-           <div className="glass-card p-8 rounded-[2.5rem] border-white/10">
-              <h4 className="text-[10px] font-black text-blue-500 uppercase mb-6 flex items-center gap-2"><Zap size={16} /> Critical Skill Keywords</h4>
+           <div className="glass-card p-10 rounded-[2.5rem]">
+              <h4 className="text-[10px] font-black text-blue-500 uppercase mb-8 flex items-center gap-2"><Zap size={16} /> Key Semantic Targets</h4>
               <div className="flex flex-wrap gap-2">
                  {data.missing_keywords.map((kw, i) => (
-                   <span key={i} className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[10px] font-bold text-blue-300 uppercase tracking-wider">
+                   <span key={i} className="px-4 py-2 bg-blue-500/5 border border-blue-500/10 rounded-xl text-[10px] font-bold text-blue-300 uppercase tracking-wider hover:bg-blue-500/10 transition-colors">
                       {kw}
                    </span>
                  ))}
               </div>
            </div>
 
-           <div className="glass-card p-8 rounded-[2.5rem] border-white/10">
-              <h4 className="text-[10px] font-black text-green-500 uppercase mb-6 flex items-center gap-2"><ListChecks size={16} /> Core Requirements</h4>
-              <div className="space-y-3">
+           <div className="glass-card p-10 rounded-[2.5rem]">
+              <h4 className="text-[10px] font-black text-green-500 uppercase mb-8 flex items-center gap-2"><ListChecks size={16} /> Foundational Pillars</h4>
+              <div className="space-y-4">
                  {data.critical_fixes.map((req, i) => (
-                   <p key={i} className="text-xs font-bold text-gray-400 flex gap-3 italic">
-                      <span className="text-green-500">•</span> {req}
+                   <p key={i} className="text-xs font-bold text-gray-400 flex gap-4 leading-relaxed italic">
+                      <span className="text-green-500 shrink-0">•</span> {req}
                    </p>
                  ))}
               </div>
            </div>
         </div>
 
-        <div className="glass-card p-10 rounded-[3rem] border-white/10 text-center">
-           <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Neural Suggestion</h4>
-           <p className="text-xl font-medium text-gray-300 leading-relaxed italic">
-             "Your target role emphasizes {data.missing_keywords[0]} and {data.missing_keywords[1]}. Focus your practice sessions on these domains."
+        <div className="glass-card p-12 rounded-[3rem] text-center border-blue-500/20 bg-blue-500/5">
+           <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-6">Neural Insight</h4>
+           <p className="text-2xl font-medium text-gray-200 leading-relaxed italic">
+             "To excel in this domain, focus your training on <span className="text-blue-400 font-black">{data.missing_keywords[0]}</span> and architectural patterns related to <span className="text-blue-400 font-black">{data.missing_keywords[1]}</span>."
            </p>
         </div>
       </div>
@@ -69,27 +72,56 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-      <div className="glass-card p-10 rounded-[3rem] border-white/10 relative overflow-hidden group">
+      {/* Primary Score Banner */}
+      <div className="glass-card p-12 rounded-[3rem] relative overflow-hidden group">
         <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-          <div className="flex items-center gap-4 mb-4">
-             <div className={`text-7xl font-black ${color}`}>{data.ats_score}<span className="text-2xl opacity-40">/100</span></div>
-             <div className={`${bg} text-black font-black px-6 py-2 rounded-2xl text-xl shadow-xl`}>GRADE: {grade}</div>
+          <div className="flex items-center gap-8">
+             <div className="relative">
+                <div className={`text-8xl font-black ${color} tracking-tighter`}>{data.ats_score}<span className="text-2xl opacity-20 ml-2">/100</span></div>
+             </div>
+             <div className="h-20 w-px bg-white/5 hidden md:block"></div>
+             <div>
+                <div className={`${bg} text-black font-black px-6 py-2 rounded-2xl text-xl shadow-2xl mb-2 inline-block`}>GRADE: {grade}</div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-widest">Neural Competency Index</p>
+             </div>
+          </div>
+          <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 max-w-xs">
+             <p className="text-[10px] font-black text-gray-400 uppercase mb-2 flex items-center gap-2"><Target size={12} /> ATS Precision</p>
+             <p className="text-xs text-gray-500 leading-relaxed">Your profile was parsed and compared against <span className="text-white font-bold">14,000+</span> industry data points.</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Section Analysis */}
         <div className="lg:col-span-7 space-y-8">
-          <div className="glass-card p-8 rounded-[2.5rem] border-white/10 overflow-hidden">
-             <h3 className="text-xs font-black text-gray-500 uppercase flex items-center gap-2"><ListChecks size={14} className="text-blue-500" /> Analysis</h3>
+          <div className="glass-card p-10 rounded-[3rem] overflow-hidden">
+             <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-10 flex items-center gap-2">
+                <Sparkles size={14} className="text-blue-500" /> Structural integrity audit
+             </h3>
              <table className="w-full text-left">
-               <thead><tr className="border-b border-white/5"><th className="pb-4 text-[10px] font-black text-gray-500 uppercase">Section</th><th className="pb-4 text-[10px] font-black text-gray-500 uppercase">Score</th><th className="pb-4 text-[10px] font-black text-gray-500 uppercase text-right">Status</th></tr></thead>
+               <thead>
+                  <tr className="border-b border-white/5 text-[9px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                     <th className="pb-6">Profile Domain</th>
+                     <th className="pb-6">Strength</th>
+                     <th className="pb-6 text-right">Status</th>
+                  </tr>
+               </thead>
                <tbody className="divide-y divide-white/5">
                  {Object.entries(data.section_scores).map(([section, score]) => (
-                   <tr key={section} className="hover:bg-white/[0.02] transition-colors">
-                     <td className="py-4 font-bold text-white text-sm capitalize">{section}</td>
-                     <td className="py-4 font-black text-sm">{score}</td>
-                     <td className="py-4 text-right flex items-center justify-end gap-2 font-black text-[10px] uppercase">{score > 10 ? <Check size={14} /> : <X size={14} />}</td>
+                   <tr key={section} className="hover:bg-white/[0.01] transition-colors">
+                     <td className="py-6 font-black text-white text-sm uppercase tracking-tighter">{section}</td>
+                     <td className="py-6">
+                        <div className="w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                           <div className={`h-full ${score > 15 ? 'bg-green-500' : 'bg-blue-500'} transition-all`} style={{ width: `${(score/20)*100}%` }} />
+                        </div>
+                     </td>
+                     <td className="py-6 text-right">
+                        {score > 10 
+                           ? <div className="inline-flex items-center gap-2 text-green-500 font-black text-[10px] uppercase">Optimal <Check size={14} /></div>
+                           : <div className="inline-flex items-center gap-2 text-yellow-500 font-black text-[10px] uppercase">Weak <AlertTriangle size={14} /></div>
+                        }
+                     </td>
                    </tr>
                  ))}
                </tbody>
@@ -97,12 +129,25 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
           </div>
         </div>
 
+        {/* Actionable Gaps */}
         <div className="lg:col-span-5 space-y-8">
-           <div className="glass-card p-8 rounded-[2.5rem] border-orange-500/20 bg-orange-500/5">
-              <h4 className="text-[10px] font-black text-orange-500 uppercase flex items-center gap-2"><ShieldAlert size={16} /> Critical Fixes</h4>
-              <div className="space-y-4">{data.critical_fixes.map((fix, i) => <p key={i} className="text-gray-300 text-[13px] font-medium leading-relaxed">• {fix}</p>)}</div>
+           <div className="glass-card p-10 rounded-[3rem] border-orange-500/10 bg-orange-500/[0.02]">
+              <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-8 flex items-center gap-2"><ShieldAlert size={16} /> Critical Optimization Gaps</h4>
+              <div className="space-y-6">
+                 {data.critical_fixes.map((fix, i) => (
+                    <div key={i} className="flex gap-4 group">
+                       <div className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 group-hover:scale-150 transition-transform" />
+                       <p className="text-gray-300 text-sm font-medium leading-relaxed">{fix}</p>
+                    </div>
+                 ))}
+              </div>
            </div>
-           <div className="glass-card p-8 rounded-[2.5rem] border-blue-500/20 bg-blue-500/5 text-center group"><Award size={48} className="text-blue-500 mx-auto mb-4" /><h4 className="text-white font-black uppercase">Ready for Submission?</h4></div>
+           
+           <div className="glass-card p-10 rounded-[3rem] border-blue-500/10 bg-blue-500/[0.02] text-center group">
+              <Award size={48} className="text-blue-500/40 mx-auto mb-6 group-hover:scale-110 group-hover:text-blue-500 transition-all duration-500" />
+              <h4 className="text-white font-black uppercase tracking-tighter text-xl">Verification Ready</h4>
+              <p className="text-[10px] font-bold text-gray-500 uppercase mt-2">Passed initial neural screening.</p>
+           </div>
         </div>
       </div>
     </div>

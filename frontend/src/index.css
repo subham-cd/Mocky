@@ -12,45 +12,72 @@
   }
 
   body {
-    background-color: #0a0c10;
-    color: #f3f4f6; /* text-gray-100 */
+    background-color: #030712; /* Deeper black for high-end look */
+    color: #f9fafb;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer utilities {
   .glass {
-    background-color: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
   
+  /* Cleaner, more professional card style */
   .glass-card {
-    background-color: rgba(17, 20, 29, 0.8);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    background-color: rgba(17, 24, 39, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(17, 24, 39, 0.5);
+    transform: translateY(-2px);
   }
 
   .text-glow {
-    text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
 
-  .gradient-border {
+  /* Subtle border animation */
+  .dynamic-border {
     position: relative;
-    border: 1px solid transparent;
-    background-clip: padding-box;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .gradient-border::after {
+  .dynamic-border:hover::after {
+    opacity: 1;
+  }
+
+  .dynamic-border::after {
     content: '';
     position: absolute;
-    top: -1px; bottom: -1px;
-    left: -1px; right: -1px;
+    inset: -1px;
     background: linear-gradient(to right, #3b82f6, #6366f1);
     z-index: -1;
     border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .animate-float {

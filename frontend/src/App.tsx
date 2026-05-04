@@ -35,6 +35,8 @@ function App() {
   const [isSkipMode, setIsSkipMode] = useState(false);
 
   const handleUploadSuccess = (data: any) => {
+    setATSResult(null);
+    setInterviewReport(null);
     setResumeData(data);
     setIsSkipMode(false);
     setActiveTab('dashboard');

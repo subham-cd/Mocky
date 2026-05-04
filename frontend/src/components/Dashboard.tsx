@@ -2,7 +2,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight } from 'lucide-react';
+import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles } from 'lucide-react';
 import { useCareerStore } from '../store/useCareerStore';
 import { useHydration } from '../hooks/useHydration';
 
@@ -36,16 +36,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02] p-10 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
          {isGuest && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500/50 via-orange-500/50 to-yellow-500/50 animate-pulse"></div>}
          <div>
-            <h1 className="text-3xl font-black text-white tracking-tighter uppercase">
-               {isGuest ? "Simulation Mission Control" : "Neural Dashboard"}
+            <h1 className="text-4xl font-black text-white tracking-tighter uppercase mb-2">
+               {isGuest ? "Mission Control" : "Command Center"}
             </h1>
-            {isGuest && <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mt-1 animate-pulse">● Training Environment Active</p>}
+            <p className="text-gray-400 text-xs font-medium tracking-wide">
+               {isGuest ? "System in Simulation Mode. Data accuracy restricted." : "Real-time analysis of your professional trajectory."}
+            </p>
          </div>
-         <div className="flex items-center gap-4 bg-black/40 px-6 py-3 rounded-2xl border border-white/5">
-            <select value={targetRole} onChange={e => setTargetRole(e.target.value)} className="bg-transparent border-none p-0 text-sm font-black text-white cursor-pointer">
+         <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/10 group hover:border-blue-500/50 transition-all">
+            <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mr-2">Targeting</div>
+            <select value={targetRole} onChange={e => setTargetRole(e.target.value)} className="bg-transparent border-none p-0 text-sm font-black text-white cursor-pointer focus:ring-0">
               <option className="bg-gray-900">Software Engineer</option>
               <option className="bg-gray-900">Data Analyst</option>
               <option className="bg-gray-900">Product Manager</option>
@@ -55,105 +59,160 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         <div className="glass-card p-10 rounded-[3rem] border-white/10 flex flex-col items-center justify-center text-center group relative overflow-hidden">
-            {isGuest && <div className="absolute inset-0 bg-yellow-500/5 pointer-events-none"></div>}
-            <div className="relative w-48 h-48 flex items-center justify-center mb-6">
+         {/* Readiness Score */}
+         <div className="glass-card p-10 rounded-[3rem] flex flex-col items-center justify-center text-center group relative overflow-hidden">
+            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-8 flex items-center gap-2">
+               <Brain size={14} className="text-blue-500" /> Hiring Readiness
+            </h3>
+            <div className="relative w-48 h-48 flex items-center justify-center mb-8">
                <svg className="w-full h-full transform -rotate-90 scale-110">
-                  <circle cx="96" cy="96" r="88" stroke="rgba(255,255,255,0.05)" strokeWidth="12" fill="transparent" />
-                  <circle cx="96" cy="96" r="88" stroke={isGuest ? '#f59e0b' : healthColor} strokeWidth="12" fill="transparent" strokeDasharray={552.9} strokeDashoffset={552.9 - (552.9 * (isGuest ? 45 : healthScore)) / 100} />
+                  <circle cx="96" cy="96" r="88" stroke="rgba(255,255,255,0.03)" strokeWidth="8" fill="transparent" />
+                  <circle cx="96" cy="96" r="88" stroke={isGuest ? '#f59e0b' : healthColor} strokeWidth="12" fill="transparent" strokeDasharray={552.9} strokeDashoffset={552.9 - (552.9 * (isGuest ? 45 : healthScore)) / 100} strokeLinecap="round" className="transition-all duration-1000" />
                </svg>
-               <span className="absolute text-6xl font-black text-white">{isGuest ? 'SIM' : healthScore || '--'}</span>
+               <div className="absolute flex flex-col items-center">
+                  <span className="text-6xl font-black text-white tracking-tighter">{isGuest ? 'SIM' : healthScore || '--'}</span>
+                  <span className="text-[10px] font-black text-gray-500 uppercase">Percentile</span>
+               </div>
             </div>
-            <p className="text-sm font-black uppercase tracking-widest" style={{ color: isGuest ? '#f59e0b' : healthColor }}>
-               {isGuest ? "Baseline Potential" : (healthScore >= 75 ? "Interview Ready 🚀" : "Optimization Needed ⚡")}
+            <p className="text-xs font-black uppercase tracking-widest py-2 px-6 rounded-full border border-white/5 bg-white/5" style={{ color: isGuest ? '#f59e0b' : healthColor }}>
+               {isGuest ? "Baseline Potential" : (healthScore >= 75 ? "Market Ready 🚀" : "Needs Optimization ⚡")}
             </p>
          </div>
 
-         <div className="glass-card p-10 rounded-[3rem] border-white/10 flex flex-col justify-between group">
-            <h3 className="text-xs font-black text-gray-500 uppercase flex items-center gap-2">
-               {isGuest ? <Zap size={14} className="text-yellow-500" /> : <Target size={14} />} 
-               {isGuest ? "Role Demand" : "Latest ATS"}
-            </h3>
+         {/* ATS Insights */}
+         <div className="glass-card p-10 rounded-[3rem] flex flex-col justify-between group">
+            <div className="flex justify-between items-start">
+               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                  <Target size={14} className={isGuest ? "text-yellow-500" : "text-blue-500"} /> 
+                  {isGuest ? "Market Signal" : "Resume Strength"}
+               </h3>
+               <div className="bg-white/5 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Info size={12} className="text-gray-500" />
+               </div>
+            </div>
+            
             {isGuest ? (
                <div className="space-y-4 py-4">
-                  <div className="text-4xl font-black text-white uppercase tracking-tighter">High <span className="text-green-500">↑</span></div>
-                  <p className="text-[10px] font-bold text-gray-500 leading-relaxed">Neural analysis indicates 84% market growth for {targetRole} roles this quarter.</p>
+                  <div className="text-5xl font-black text-white uppercase tracking-tighter flex items-center gap-3">HIGH <TrendingUp className="text-green-500" /></div>
+                  <p className="text-xs font-medium text-gray-500 leading-relaxed">Neural analysis indicates <span className="text-white font-bold">84% growth</span> for {targetRole} roles this quarter.</p>
                </div>
             ) : (
-               <div className="text-6xl font-black text-white">{atsResult?.ats_score || 0}<span className="text-xl opacity-30">/100</span></div>
+               <div className="space-y-2">
+                  <div className="text-7xl font-black text-white tracking-tighter">{atsResult?.ats_score || 0}<span className="text-2xl opacity-20 ml-2">/100</span></div>
+                  <p className="text-xs font-medium text-gray-500">Compatibility with top tier {targetRole} benchmarks.</p>
+               </div>
             )}
-            <button onClick={() => onNavigate('ats')} className="w-full py-4 bg-white/5 text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 mt-6 transition-all group-hover:bg-blue-600">
-               {isGuest ? "Analyze Role Keywords" : "View Full Report"} <ChevronRight size={12} />
+            
+            <button onClick={() => onNavigate('ats')} className="w-full py-5 bg-white/5 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 mt-8 transition-all group-hover:bg-blue-600 group-hover:border-blue-400 border border-transparent">
+               {isGuest ? "Analyze Role Keywords" : "Deep Score Breakdown"} <ChevronRight size={14} />
             </button>
          </div>
 
-         <div className="glass-card p-10 rounded-[3rem] border-white/10 flex flex-col justify-between group">
-            <h3 className="text-xs font-black text-gray-500 uppercase flex items-center gap-2"><Activity size={14} /> {isGuest ? "Simulation Depth" : "Latest Interview"}</h3>
+         {/* Performance Metrics */}
+         <div className="glass-card p-10 rounded-[3rem] flex flex-col justify-between group">
+            <div className="flex justify-between items-start">
+               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                  <Activity size={14} className="text-purple-500" /> 
+                  {isGuest ? "Training Depth" : "Recent Assessment"}
+               </h3>
+            </div>
+            
             {isGuest ? (
                <div className="space-y-4 py-4">
-                  <div className="text-4xl font-black text-white">{sessions.length}<span className="text-xl opacity-30"> RUNS</span></div>
-                  <p className="text-[10px] font-bold text-gray-400">Total training sessions logged in simulation mode.</p>
+                  <div className="text-5xl font-black text-white tracking-tighter">{sessions.length}<span className="text-2xl opacity-20 ml-3 uppercase">Runs</span></div>
+                  <p className="text-xs font-medium text-gray-500">Global training iterations logged in simulation mode.</p>
                </div>
             ) : (
-               <div className="text-6xl font-black text-white">{interviewReport?.overall_score || 0}<span className="text-xl opacity-30">/100</span></div>
+               <div className="space-y-2">
+                  <div className="text-7xl font-black text-white tracking-tighter">{interviewReport?.overall_score || 0}<span className="text-2xl opacity-20 ml-2">/100</span></div>
+                  <p className="text-xs font-medium text-gray-500">Average logic and communication index from live labs.</p>
+               </div>
             )}
-            <button onClick={() => onNavigate('interview')} className="w-full py-4 bg-white/5 text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 mt-6 transition-all group-hover:bg-purple-600">
-               {isGuest ? "Start Live Simulation" : "Retake Session"} <ChevronRight size={12} />
+            
+            <button onClick={() => onNavigate('interview')} className="w-full py-5 bg-white/5 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 mt-8 transition-all group-hover:bg-purple-600 group-hover:border-purple-400 border border-transparent">
+               {isGuest ? "Start Live Simulation" : "Retake Live Lab"} <ChevronRight size={14} />
             </button>
          </div>
       </div>
 
+      {/* Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-         <div className="glass-card p-10 rounded-[3rem] border-white/10 flex flex-col items-center min-h-[400px]">
-            <h3 className="text-xs font-black text-gray-500 uppercase mb-10 self-start flex items-center gap-2"><TrendingUp size={14} /> Performance Radar</h3>
-            <div className="w-full h-80 flex items-center justify-center">
-               <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+         <div className="glass-card p-10 rounded-[3rem] flex flex-col items-center min-h-[450px]">
+            <div className="w-full flex justify-between items-center mb-12">
+               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-blue-400" /> Skill Competency Radar</h3>
+               <p className="text-[9px] font-black text-gray-600 bg-white/5 px-3 py-1 rounded-full uppercase">Real-time Data</p>
+            </div>
+            <div className="w-full h-80">
+               <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                     <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                     <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 'bold' }} />
-                     <Radar name="Performance" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+                     <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                     <PolarAngleAxis dataKey="subject" tick={{ fill: '#9ca3af', fontSize: 9, fontWeight: '900', letterSpacing: '1px' }} />
+                     <Radar name="Performance" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
                   </RadarChart>
                </ResponsiveContainer>
             </div>
          </div>
 
-         <div className="glass-card p-10 rounded-[3rem] border-white/10 flex flex-col min-h-[400px]">
-            <h3 className="text-xs font-black text-gray-500 uppercase mb-10 self-start flex items-center gap-2"><Clock size={14} /> Improvement Vector</h3>
-            <div className="flex-1 min-h-[300px]">
-               <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+         <div className="glass-card p-10 rounded-[3rem] flex flex-col min-h-[450px]">
+            <div className="w-full flex justify-between items-center mb-12">
+               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2"><Clock size={14} /> Professional Evolution</h3>
+               <p className="text-[9px] font-black text-gray-600 bg-white/5 px-3 py-1 rounded-full uppercase">Progression Loop</p>
+            </div>
+            <div className="flex-1">
+               <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={lineData}>
-                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 10 }} />
-                     <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 10 }} />
-                     <Tooltip contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '1rem', color: '#fff' }} />
-                     <Line type="monotone" dataKey="score" stroke="#10b981" strokeWidth={4} dot={{ fill: '#10b981', r: 6 }} />
+                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 10, fontWeight: '800' }} />
+                     <YAxis domain={[0, 100]} hide />
+                     <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', color: '#fff', fontSize: '12px' }} />
+                     <Line type="monotone" dataKey="score" stroke="#10b981" strokeWidth={4} dot={{ fill: '#10b981', r: 5, strokeWidth: 0 }} activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 4, fill: '#000' }} />
                   </LineChart>
                </ResponsiveContainer>
             </div>
          </div>
       </div>
 
-      <div className="glass-card p-10 rounded-[3rem] border-white/10 overflow-hidden">
-         <h3 className="text-xs font-black text-gray-500 uppercase mb-8 flex items-center gap-2"><Clock size={14} /> Global Session Logs</h3>
+      {/* Global Logs */}
+      <div className="glass-card p-10 rounded-[3.5rem] overflow-hidden">
+         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-10 flex items-center gap-2"><Activity size={14} /> Neural Transmission Logs</h3>
          <div className="overflow-x-auto">
             <table className="w-full text-left">
                <thead>
-                  <tr className="border-b border-white/5 text-[9px] font-black text-gray-500 uppercase">
-                     <th className="pb-4">Date</th><th className="pb-4">Role</th><th className="pb-4">ATS</th><th className="pb-4 text-center">Interview</th><th className="pb-4 text-right">Actions</th>
+                  <tr className="border-b border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                     <th className="pb-6 px-4">Timestamp</th><th className="pb-6 px-4">Operation</th><th className="pb-6 px-4 text-center">Score</th><th className="pb-6 px-4 text-right">Integrity Check</th>
                   </tr>
                </thead>
                <tbody className="divide-y divide-white/5">
                   {sessions.map((s) => (
-                     <tr key={s.id} className="group hover:bg-white/[0.02] transition-colors text-white">
-                        <td className="py-5 text-xs text-gray-400">{s.date}</td>
-                        <td className="py-5 text-sm font-black">{s.target_role}</td>
-                        <td className="py-5 font-black text-blue-400">{s.ats_score}%</td>
-                        <td className="py-5 text-center font-black text-purple-400">{s.interview_score > 0 ? `${s.interview_score}%` : 'N/A'}</td>
-                        <td className="py-5 text-right"><ExternalLink size={14} className="text-gray-500 inline group-hover:text-white" /></td>
+                     <tr key={s.id} className="group hover:bg-white/[0.01] transition-colors">
+                        <td className="py-6 px-4 text-[11px] font-bold text-gray-500 tracking-tight">{s.date}</td>
+                        <td className="py-6 px-4">
+                           <div className="flex flex-col">
+                              <span className="text-sm font-black text-white uppercase tracking-tighter">{s.target_role}</span>
+                              <span className="text-[9px] text-gray-600 font-bold uppercase">{s.type || 'Standard Analysis'}</span>
+                           </div>
+                        </td>
+                        <td className="py-6 px-4 text-center">
+                           <span className={`text-sm font-black ${s.ats_score > 70 ? 'text-green-500' : 'text-blue-400'}`}>
+                              {s.ats_score}%
+                           </span>
+                        </td>
+                        <td className="py-6 px-4 text-right">
+                           <div className="flex items-center justify-end gap-3 text-gray-600 group-hover:text-blue-500 transition-colors">
+                              <span className="text-[10px] font-black uppercase tracking-widest">Verified</span>
+                              <ExternalLink size={12} />
+                           </div>
+                        </td>
                      </tr>
                   ))}
                </tbody>
             </table>
+            {sessions.length === 0 && (
+               <div className="py-20 text-center flex flex-col items-center">
+                  <div className="p-4 bg-white/5 rounded-full mb-4"><Clock size={32} className="text-gray-700" /></div>
+                  <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">No transmissions recorded.</p>
+               </div>
+            )}
          </div>
       </div>
     </div>
