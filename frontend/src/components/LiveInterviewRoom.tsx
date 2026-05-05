@@ -51,6 +51,8 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     utterance.pitch = 1.0;
     
     const voices = window.speechSynthesis.getVoices();
+    
+    // Ensure voices are available (some browsers load them async)
     const sarahVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Female')) || voices[0];
     if (sarahVoice) utterance.voice = sarahVoice;
 
@@ -62,6 +64,10 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
       } else {
         setAvatarState("idle");
       }
+    };
+    utterance.onerror = (e) => {
+      console.error("Speech synthesis error", e);
+      setAvatarState("idle");
     };
     window.speechSynthesis.speak(utterance);
   };
@@ -83,11 +89,13 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
         })
       });
 
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let fullText = "";
 
-      if (!reader) return;
+      if (!reader) throw new Error("No reader available");
 
       while (true) {
         const { done, value } = await reader.read();
@@ -112,6 +120,7 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     } catch (err) {
       console.error("Streaming failed", err);
       setAvatarState('idle');
+      setCurrentQuestion("I apologize, but my neural link is experiencing interference. Could you please repeat that or try again in a moment?");
     }
   };
 

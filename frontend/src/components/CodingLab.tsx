@@ -114,9 +114,15 @@ const CodingLab: React.FC<CodingLabProps> = ({ role }) => {
                   <div className="space-y-4 pt-4">
                      <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Example Case</h4>
                      <div className="bg-black/40 p-6 rounded-2xl border border-white/5 text-xs font-mono space-y-2">
-                        <p><span className="text-blue-400">Input:</span> {typeof problem.examples[0].input === 'object' ? JSON.stringify(problem.examples[0].input) : problem.examples[0].input}</p>
-                        <p><span className="text-green-400">Output:</span> {typeof problem.examples[0].output === 'object' ? JSON.stringify(problem.examples[0].output) : problem.examples[0].output}</p>
-                        <p className="text-gray-500 mt-2 italic">// {problem.examples[0].explanation}</p>
+                        {problem.examples && problem.examples.length > 0 ? (
+                          <>
+                            <p><span className="text-blue-400">Input:</span> {typeof problem.examples[0].input === 'object' ? JSON.stringify(problem.examples[0].input) : problem.examples[0].input}</p>
+                            <p><span className="text-green-400">Output:</span> {typeof problem.examples[0].output === 'object' ? JSON.stringify(problem.examples[0].output) : problem.examples[0].output}</p>
+                            <p className="text-gray-500 mt-2 italic">// {problem.examples[0].explanation}</p>
+                          </>
+                        ) : (
+                          <p className="text-gray-500 italic">No example provided.</p>
+                        )}
                      </div>
                   </div>
                </div>

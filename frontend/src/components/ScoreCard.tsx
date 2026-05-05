@@ -40,7 +40,7 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
            <div className="glass-card p-10 rounded-[2.5rem]">
               <h4 className="text-[10px] font-black text-blue-500 uppercase mb-8 flex items-center gap-2"><Zap size={16} /> Key Semantic Targets</h4>
               <div className="flex flex-wrap gap-2">
-                 {data.missing_keywords.map((kw, i) => (
+                 {data.missing_keywords?.map((kw, i) => (
                    <span key={i} className="px-4 py-2 bg-blue-500/5 border border-blue-500/10 rounded-xl text-[10px] font-bold text-blue-300 uppercase tracking-wider hover:bg-blue-500/10 transition-colors">
                       {kw}
                    </span>
@@ -51,7 +51,7 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
            <div className="glass-card p-10 rounded-[2.5rem]">
               <h4 className="text-[10px] font-black text-green-500 uppercase mb-8 flex items-center gap-2"><ListChecks size={16} /> Foundational Pillars</h4>
               <div className="space-y-4">
-                 {data.critical_fixes.map((req, i) => (
+                 {data.critical_fixes?.map((req, i) => (
                    <p key={i} className="text-xs font-bold text-gray-400 flex gap-4 leading-relaxed italic">
                       <span className="text-green-500 shrink-0">•</span> {req}
                    </p>
@@ -63,7 +63,7 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
         <div className="glass-card p-12 rounded-[3rem] text-center border-blue-500/20 bg-blue-500/5">
            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-6">Neural Insight</h4>
            <p className="text-2xl font-medium text-gray-200 leading-relaxed italic">
-             "To excel in this domain, focus your training on <span className="text-blue-400 font-black">{data.missing_keywords[0]}</span> and architectural patterns related to <span className="text-blue-400 font-black">{data.missing_keywords[1]}</span>."
+             "To excel in this domain, focus your training on <span className="text-blue-400 font-black">{data.missing_keywords?.[0] || 'core technologies'}</span> {data.missing_keywords?.[1] ? <>and architectural patterns related to <span className="text-blue-400 font-black">{data.missing_keywords[1]}</span></> : ''}."
            </p>
         </div>
       </div>
@@ -101,14 +101,14 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
              </h3>
              <table className="w-full text-left">
                <thead>
-                  <tr className="border-b border-white/5 text-[9px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                  <tr className="border-b border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">
                      <th className="pb-6">Profile Domain</th>
                      <th className="pb-6">Strength</th>
                      <th className="pb-6 text-right">Status</th>
                   </tr>
                </thead>
                <tbody className="divide-y divide-white/5">
-                 {Object.entries(data.section_scores).map(([section, score]) => (
+                 {data.section_scores && Object.entries(data.section_scores).map(([section, score]) => (
                    <tr key={section} className="hover:bg-white/[0.01] transition-colors">
                      <td className="py-6 font-black text-white text-sm uppercase tracking-tighter">{section}</td>
                      <td className="py-6">
@@ -134,7 +134,7 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
            <div className="glass-card p-10 rounded-[3rem] border-orange-500/10 bg-orange-500/[0.02]">
               <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-8 flex items-center gap-2"><ShieldAlert size={16} /> Critical Optimization Gaps</h4>
               <div className="space-y-6">
-                 {data.critical_fixes.map((fix, i) => (
+                 {data.critical_fixes?.map((fix, i) => (
                     <div key={i} className="flex gap-4 group">
                        <div className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 group-hover:scale-150 transition-transform" />
                        <p className="text-gray-300 text-sm font-medium leading-relaxed">{fix}</p>

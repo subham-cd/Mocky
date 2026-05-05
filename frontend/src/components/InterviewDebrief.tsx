@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface InterviewDebriefProps {
   report: any;
@@ -10,6 +11,7 @@ interface InterviewDebriefProps {
 const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart }) => {
   const [displayScore, setDisplayScore] = useState(0);
   const [openQ, setOpenQ] = useState<number | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     let current = 0;
@@ -33,7 +35,7 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart }
   const gradeColor = report.overall_score >= 80 ? '#10b981' : report.overall_score >= 60 ? '#3b82f6' : '#f59e0b';
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl overflow-y-auto p-20 animate-in fade-in duration-500">
+    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl overflow-y-auto p-20 animate-in fade-in duration-500 text-white">
       <div className="max-w-5xl mx-auto space-y-12">
         <div className="glass-card p-16 rounded-[4rem] border-white/10 text-center relative overflow-hidden bg-black/40">
            <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: gradeColor }}></div>
@@ -76,9 +78,9 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart }
            ))}
         </div>
 
-        <div className="flex justify-center gap-6">
+        <div className="flex justify-center gap-6 pb-20">
            <button onClick={onRestart} className="px-12 py-5 bg-white text-black rounded-2xl font-black uppercase flex items-center gap-3"><RefreshCcw size={16} /> Restart</button>
-           <button onClick={() => window.location.reload()} className="px-12 py-5 bg-white/5 text-gray-400 rounded-2xl font-black uppercase flex items-center gap-3"><LayoutDashboard size={16} /> Dashboard</button>
+           <button onClick={() => navigate('/dashboard')} className="px-12 py-5 bg-white/5 text-gray-400 rounded-2xl font-black uppercase flex items-center gap-3"><LayoutDashboard size={16} /> Dashboard</button>
         </div>
       </div>
     </div>

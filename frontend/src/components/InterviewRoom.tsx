@@ -200,7 +200,7 @@ const InterviewRoom: React.FC<InterviewRoomProps> = ({ resumeText, role }) => {
               <div><p className="text-4xl font-black">06</p><p className="text-[10px] text-gray-500 uppercase mt-1">Queries</p></div>
               <div><p className="text-4xl font-black">100%</p><p className="text-[10px] text-gray-500 uppercase mt-1">Integrity</p></div>
               <div><p className="text-4xl font-black">AI</p><p className="text-[10px] text-gray-500 uppercase mt-1">Logic</p></div>
-              <div><p className="text-4xl font-black text-blue-500">{role.split(' ')[0]}</p><p className="text-[10px] text-gray-500 uppercase mt-1">Vertical</p></div>
+              <div><p className="text-4xl font-black text-blue-500">{(role || "General").split(' ')[0]}</p><p className="text-[10px] text-gray-500 uppercase mt-1">Vertical</p></div>
            </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

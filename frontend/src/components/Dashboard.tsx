@@ -25,14 +25,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const healthColor = healthScore >= 75 ? '#10b981' : healthScore >= 50 ? '#f59e0b' : '#ef4444';
 
   const radarData = [
-    { subject: 'Technical', score: latestSession?.radar_scores?.technical_depth || interviewReport?.dimension_scores?.technical_depth || (isGuest ? 60 : 0) },
-    { subject: 'Communication', score: latestSession?.radar_scores?.communication || interviewReport?.dimension_scores?.communication || (isGuest ? 70 : 0) },
-    { subject: 'Problem Solving', score: latestSession?.radar_scores?.problem_solving || interviewReport?.dimension_scores?.problem_solving || (isGuest ? 65 : 0) },
-    { subject: 'Confidence', score: latestSession?.radar_scores?.confidence || interviewReport?.dimension_scores?.confidence || (isGuest ? 80 : 0) },
-    { subject: 'Relevance', score: latestSession?.radar_scores?.relevance || interviewReport?.dimension_scores?.relevance || (isGuest ? 50 : 0) },
+    { subject: 'Technical', score: latestSession?.radar_scores?.technical_depth ?? interviewReport?.dimension_scores?.technical_depth ?? (isGuest ? 60 : 0) },
+    { subject: 'Communication', score: latestSession?.radar_scores?.communication ?? interviewReport?.dimension_scores?.communication ?? (isGuest ? 70 : 0) },
+    { subject: 'Problem Solving', score: latestSession?.radar_scores?.problem_solving ?? interviewReport?.dimension_scores?.problem_solving ?? (isGuest ? 65 : 0) },
+    { subject: 'Confidence', score: latestSession?.radar_scores?.confidence ?? interviewReport?.dimension_scores?.confidence ?? (isGuest ? 80 : 0) },
+    { subject: 'Relevance', score: latestSession?.radar_scores?.relevance ?? interviewReport?.dimension_scores?.relevance ?? (isGuest ? 50 : 0) },
   ];
 
-  const lineData = [...sessions].reverse().filter(s => s.ats_score > 0 || s.type === 'coding').map(s => ({ date: s.date, score: s.ats_score || s.interview_score }));
+  const lineData = [...sessions]
+    .reverse()
+    .filter(s => (s.ats_score !== undefined && s.ats_score > 0) || (s.interview_score !== undefined && s.interview_score > 0))
+    .map(s => ({ date: s.date, score: s.ats_score || s.interview_score || 0 }));
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
