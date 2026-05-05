@@ -154,17 +154,40 @@ async def live_turn_stream(data: dict):
 async def live_report(data: dict):
     history = data.get("conversation_history")
     role = data.get("target_role")
+    behavioral = data.get("behavioral_metrics", {})
     
+    # Nervousness Index Calculation
+    filler_count = behavioral.get("filler_count", 0)
+    avg_response_time = behavioral.get("avg_response_time", 0)
+    answer_variance = behavioral.get("answer_variance", 0)
+
+    f_score = min(100, (filler_count / 20) * 100)
+    r_score = min(100, (avg_response_time / 10) * 100)
+    v_score = min(100, (answer_variance / 200) * 100)
+    
+    nervousness_index = int((f_score * 0.4) + (r_score * 0.3) + (v_score * 0.3))
+    
+    if nervousness_index < 35:
+        nervousness_label = "Calm"
+    elif nervousness_index < 65:
+        nervousness_label = "Moderate"
+    else:
+        nervousness_label = "Nervous"
+
     system_prompt = "You are an expert interview coach. Analyze this complete interview and return ONLY valid JSON."
     user_prompt = f"""
         Analyze this complete interview for a {role} position.
         Conversation: {json.dumps(history)}
+        Behavioral Metrics: {json.dumps(behavioral)}
+        Calculated Nervousness: {nervousness_label} ({nervousness_index}/100)
         
         Return ONLY this JSON structure:
         {{
             "overall_score": <0-100>,
             "composite_grade": "<A/B/C/D>",
             "summary": "<2 sentence overall assessment>",
+            "nervousness_index": {nervousness_index},
+            "nervousness_label": "{nervousness_label}",
             "dimension_scores": {{
                 "technical_depth": <0-100>,
                 "communication": <0-100>,
@@ -182,7 +205,11 @@ async def live_report(data: dict):
     """
     try:
         raw_json = await groq_client.get_json_completion(user_prompt, system_prompt)
-        return safe_parse_groq_json(raw_json)
+        parsed = safe_parse_groq_json(raw_json)
+        # Ensure calculated metrics are in final response
+        parsed["nervousness_index"] = nervousness_index
+        parsed["nervousness_label"] = nervousness_label
+        return parsed
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

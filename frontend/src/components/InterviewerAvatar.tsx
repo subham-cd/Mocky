@@ -10,9 +10,9 @@ const InterviewerAvatar: React.FC<InterviewerAvatarProps> = ({ state, type = 'sa
   const alexImg = "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=256&h=256&auto=format&fit=crop";
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-4 md:gap-6">
       <div className="relative">
-        <div className={`relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 transition-all duration-500 overflow-hidden shadow-2xl
+        <div className={`relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 transition-all duration-500 overflow-hidden shadow-2xl
           ${state === 'speaking' ? 'border-green-500 scale-105 animate-pulse' : 
             state === 'listening' ? 'border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.5)]' : 
             state === 'thinking' ? 'border-purple-500 animate-bounce' : 

@@ -196,13 +196,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
            </div>
 
            {loadingMatrix ? (
-              <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                 <div className="w-8 h-8 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
-                 <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Generating skill matrix...</p>
+              <div className="py-20 space-y-4">
+                 {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="flex gap-4 animate-pulse">
+                       <div className="h-10 bg-white/5 rounded-xl flex-1" />
+                       <div className="h-10 bg-white/5 rounded-xl w-16" />
+                       <div className="h-10 bg-white/5 rounded-xl w-16" />
+                       <div className="h-10 bg-white/5 rounded-xl w-16" />
+                       <div className="h-10 bg-white/5 rounded-xl w-16" />
+                    </div>
+                 ))}
               </div>
            ) : (
-              <div className="overflow-x-auto">
-                 <table className="w-full text-left border-separate border-spacing-y-2">
+              <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
+                 <table className="w-full text-left border-separate border-spacing-y-2 min-w-[600px]">
                     <thead>
                        <tr className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
                           <th className="px-4 pb-4">Skill Domain</th>

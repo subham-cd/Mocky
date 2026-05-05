@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
-import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface InterviewDebriefProps {
@@ -39,6 +39,19 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart }
       <div className="max-w-5xl mx-auto space-y-12">
         <div className="glass-card p-16 rounded-[4rem] border-white/10 text-center relative overflow-hidden bg-black/40">
            <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: gradeColor }}></div>
+           
+           {/* Nervousness Badge */}
+           {report.nervousness_label && (
+             <div className="absolute top-8 right-8">
+                <div className={`px-5 py-2.5 rounded-full border font-black text-[10px] uppercase tracking-widest flex items-center gap-3 shadow-2xl backdrop-blur-md
+                  ${report.nervousness_label === 'Calm' ? 'bg-green-500/10 border-green-500/30 text-green-500' : 
+                    report.nervousness_label === 'Moderate' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' : 
+                    'bg-red-500/10 border-red-500/30 text-red-500'}`}>
+                   <Activity size={14} className="animate-pulse" /> Delivery: {report.nervousness_label} ({report.nervousness_index}%)
+                </div>
+             </div>
+           )}
+
            <div className="relative inline-flex items-center justify-center w-64 h-64 mb-10">
               <svg className="w-full h-full transform -rotate-90 scale-125">
                  <circle cx="128" cy="128" r="110" stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="transparent" />

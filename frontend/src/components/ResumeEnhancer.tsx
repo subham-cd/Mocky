@@ -56,7 +56,20 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-700">
+    <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-700 pb-20 px-4 md:px-0">
+      {loading && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center">
+            <div className="relative w-24 h-24 mb-10">
+                <div className="absolute inset-0 border-4 border-purple-500/20 rounded-full" />
+                <div className="absolute inset-0 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="text-purple-500 w-10 h-10 animate-pulse" />
+                </div>
+            </div>
+            <h2 className="text-xl font-black text-white uppercase tracking-[0.4em] mb-4">Neural Optimizer Active</h2>
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest animate-pulse">Surgically rewriting your professional profile...</p>
+        </div>
+      )}
       {!result && !tailorResult ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* General Enhancement Card */}

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Play, Send, Zap, Loader2, Info, Mic, Pause, Square, MicOff, Activity, MessageCircle, BarChart3, Gauge, Users, User } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, Send, Zap, Loader2, Info, Mic, Pause, Square, MicOff, Activity, Gauge, Users, User } from 'lucide-react';
 import axios from 'axios';
 import InterviewerAvatar from './InterviewerAvatar';
 import { SpeechToText } from '../utils/speechApi';
@@ -27,6 +27,9 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   const [interimTranscript, setInterimTranscript] = useState("");
   const questionCount = useRef(0);
   const startTime = useRef<number | null>(null);
+  const turnStartTime = useRef<number | null>(null);
+  const answerLengths = useRef<number[]>([]);
+  const responseTimes = useRef<number[]>([]);
   
   // Emotion & Confidence State
   const [metrics, setMetrics] = useState({
@@ -107,6 +110,7 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
         setAvatarState("listening");
         speechApiRef.current?.start();
         if (!startTime.current) startTime.current = Date.now();
+        turnStartTime.current = Date.now(); // Start timing candidate's turn
       } else {
         setAvatarState("idle");
       }
@@ -167,6 +171,61 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     }
   };
 
+  const finalizeInterview = async () => {
+    speechApiRef.current?.stop();
+    setLoading(true);
+    setAvatarState("thinking");
+
+    // Calculate aggregated behavioral metrics
+    const avgResponseTime = responseTimes.current.length > 0 
+      ? responseTimes.current.reduce((a, b) => a + b, 0) / responseTimes.current.length 
+      : 0;
+    
+    const meanLength = answerLengths.current.length > 0 
+      ? answerLengths.current.reduce((a, b) => a + b, 0) / answerLengths.current.length 
+      : 0;
+    
+    const variance = answerLengths.current.length > 0
+      ? answerLengths.current.reduce((a, b) => a + Math.pow(b - meanLength, 2), 0) / answerLengths.current.length
+      : 0;
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}/interview/live-report`, {
+        conversation_history: conversationHistory,
+        target_role: targetRole,
+        behavioral_metrics: {
+          filler_count: metrics.fillerCount,
+          avg_response_time: avgResponseTime,
+          answer_variance: Math.sqrt(variance)
+        }
+      });
+      onInterviewComplete(res.data);
+    } catch (err) {
+      setAvatarState("idle");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCandidateAnswer = async () => {
+    const fullAnswer = (transcript + ' ' + interimTranscript).trim();
+    if (!fullAnswer || isPaused) return;
+
+    // Track metrics for this turn
+    if (turnStartTime.current) {
+        responseTimes.current.push((Date.now() - turnStartTime.current) / 1000);
+    }
+    answerLengths.current.push(fullAnswer.split(/\s+/).length);
+
+    speechApiRef.current?.stop();
+    const updatedHistory = [...conversationHistory, { role: "user", content: fullAnswer }];
+    setConversationHistory(updatedHistory);
+    setTranscript("");
+    setInterimTranscript("");
+    questionCount.current += 1;
+    await handleTurn(updatedHistory);
+  };
+
   const startInterview = async () => {
     setLoading(true);
     setAvatarState("thinking");
@@ -190,19 +249,6 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     }
   };
 
-  const handleCandidateAnswer = async () => {
-    const fullAnswer = (transcript + ' ' + interimTranscript).trim();
-    if (!fullAnswer || isPaused) return;
-
-    speechApiRef.current?.stop();
-    const updatedHistory = [...conversationHistory, { role: "user", content: fullAnswer }];
-    setConversationHistory(updatedHistory);
-    setTranscript("");
-    setInterimTranscript("");
-    questionCount.current += 1;
-    await handleTurn(updatedHistory);
-  };
-
   const togglePause = () => {
     const nextPaused = !isPaused;
     setIsPaused(nextPaused);
@@ -216,7 +262,13 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto animate-in fade-in duration-1000">
+    <div className="max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-4 md:px-0">
+      {loading && avatarState === 'thinking' && !interviewStarted && (
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center">
+            <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-6" />
+            <p className="text-[10px] font-black text-white uppercase tracking-[0.4em] animate-pulse">Initializing Neural Link...</p>
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Sidebar: Panel Profiles */}
@@ -263,7 +315,7 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
                    <button onClick={togglePause} className="w-full py-3 rounded-xl bg-white/5 text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5 flex items-center justify-center gap-2">
                       {isPaused ? <Play size={12} fill="currentColor" /> : <Pause size={12} fill="currentColor" />} {isPaused ? "Resume" : "Pause"}
                    </button>
-                   <button onClick={() => { speechApiRef.current?.stop(); axios.post(`${API_BASE_URL}/interview/live-report`, { conversation_history: conversationHistory, target_role: targetRole }).then(res => onInterviewComplete(res.data)); }} className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-widest border border-red-500/20 hover:bg-red-500 hover:text-white transition-all">End Session</button>
+                   <button onClick={finalizeInterview} className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-widest border border-red-500/20 hover:bg-red-500 hover:text-white transition-all">End Session</button>
                 </div>
              </div>
            )}

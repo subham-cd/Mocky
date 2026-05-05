@@ -154,13 +154,13 @@ const CareerRoadmap: React.FC = () => {
 
       {/* Floating Progress Tracker */}
       {roadmap && (
-         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 px-8 py-4 bg-black/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl flex items-center gap-8 animate-in slide-in-from-bottom-10">
+         <div className="fixed bottom-6 md:bottom-10 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-auto z-50 px-6 md:px-8 py-4 bg-black/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl flex flex-col md:flex-row items-center gap-4 md:gap-8 animate-in slide-in-from-bottom-10">
             <div className="flex items-center gap-3">
                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mastery Level:</span>
             </div>
-            <div className="flex items-center gap-4">
-               <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div className="flex items-center gap-4 w-full md:w-auto">
+               <div className="flex-1 md:w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-green-500 transition-all duration-1000" 
                     style={{ width: `${(completedNodes.size / roadmap.milestones.length) * 100}%` }}
