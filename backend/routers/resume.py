@@ -55,6 +55,44 @@ async def parse_resume_endpoint(file: UploadFile = File(...)):
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
+@router.post("/skill-matrix")
+async def get_skill_matrix(data: dict):
+    skills = data.get("skills", [])
+    target_role = data.get("target_role", "Software Engineer")
+    
+    system_prompt = """
+    You are a career progression analyst. Analyze the list of skills from a candidate's resume 
+    and evaluate their mastery level for each skill across four seniority levels: Junior, Mid, Senior, Lead.
+    
+    Return ONLY valid JSON.
+    Format:
+    {
+      "matrix": [
+        {
+          "skill": "React",
+          "levels": {
+            "junior": "strong | partial | gap",
+            "mid": "strong | partial | gap",
+            "senior": "strong | partial | gap",
+            "lead": "strong | partial | gap"
+          }
+        }
+      ]
+    }
+    
+    Logic:
+    - strong: Candidate has deep experience or significant projects in this.
+    - partial: Candidate knows the basics or has used it in small tasks.
+    - gap: Candidate needs to learn this or hasn't demonstrated it.
+    """
+    user_prompt = f"Target Role: {target_role}\nCandidate Skills: {', '.join(skills)}"
+    
+    try:
+        raw_json = await groq_client.get_json_completion(user_prompt, system_prompt)
+        return safe_parse_groq_json(raw_json)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/enhance")
 async def enhance_resume_endpoint(data: dict):
     resume_text = data.get("resume_text")

@@ -1,21 +1,49 @@
+import { useState, useEffect } from 'react';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles } from 'lucide-react';
+import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid } from 'lucide-react';
 import { useCareerStore } from '../store/useCareerStore';
 import { useHydration } from '../hooks/useHydration';
+import axios from 'axios';
 
 interface DashboardProps {
   onNavigate: (tab: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
   const hydrated = useHydration();
   const { 
     sessions, atsResult, interviewReport, targetRole, 
     setTargetRole, getCareerHealth, resumeData 
   } = useCareerStore();
+
+  const [skillMatrix, setSkillMatrix] = useState<any[]>([]);
+  const [loadingMatrix, setLoadingMatrix] = useState(false);
+
+  useEffect(() => {
+    const fetchMatrix = async () => {
+      if (!resumeData?.skills || resumeData.skills.length === 0) return;
+      setLoadingMatrix(true);
+      try {
+        const response = await axios.post(`${API_BASE_URL}/resume/skill-matrix`, {
+          skills: resumeData.skills,
+          target_role: targetRole
+        });
+        setSkillMatrix(response.data.matrix || []);
+      } catch (err) {
+        console.error("Matrix Error:", err);
+      } finally {
+        setLoadingMatrix(false);
+      }
+    };
+
+    if (hydrated && resumeData) {
+      fetchMatrix();
+    }
+  }, [resumeData, targetRole, hydrated]);
 
   if (!hydrated) return <div className="flex flex-col items-center justify-center min-h-[500px] text-gray-500 animate-pulse">Neural Synchronization...</div>;
 
@@ -36,6 +64,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     .reverse()
     .filter(s => (s.ats_score !== undefined && s.ats_score > 0) || (s.interview_score !== undefined && s.interview_score > 0))
     .map(s => ({ date: s.date, score: s.ats_score || s.interview_score || 0 }));
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'strong': return 'bg-green-500/20 border-green-500/30 text-green-500';
+      case 'partial': return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-500';
+      case 'gap': return 'bg-red-500/20 border-red-500/30 text-red-500';
+      default: return 'bg-white/5 border-white/5 text-gray-600';
+    }
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
@@ -137,6 +174,67 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </button>
          </div>
       </div>
+
+      {/* Skill Heatmap Widget */}
+      {!isGuest && (
+        <div className="glass-card p-10 rounded-[3.5rem] overflow-hidden border-blue-500/10 bg-blue-500/5">
+           <div className="flex justify-between items-center mb-10">
+              <div>
+                 <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                    <LayoutGrid size={14} /> Skill Readiness Heatmap
+                 </h3>
+                 <p className="text-xs text-gray-400 mt-1">Mastery levels across seniority tiers</p>
+              </div>
+              <div className="flex gap-4">
+                 {['Strong', 'Partial', 'Gap'].map(l => (
+                    <div key={l} className="flex items-center gap-2">
+                       <div className={`w-2 h-2 rounded-full ${getStatusColor(l).split(' ')[0]}`} />
+                       <span className="text-[8px] font-black uppercase text-gray-500">{l}</span>
+                    </div>
+                 ))}
+              </div>
+           </div>
+
+           {loadingMatrix ? (
+              <div className="py-20 flex flex-col items-center justify-center space-y-4">
+                 <div className="w-8 h-8 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+                 <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Generating skill matrix...</p>
+              </div>
+           ) : (
+              <div className="overflow-x-auto">
+                 <table className="w-full text-left border-separate border-spacing-y-2">
+                    <thead>
+                       <tr className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                          <th className="px-4 pb-4">Skill Domain</th>
+                          <th className="px-4 pb-4 text-center">Junior</th>
+                          <th className="px-4 pb-4 text-center">Mid</th>
+                          <th className="px-4 pb-4 text-center">Senior</th>
+                          <th className="px-4 pb-4 text-center">Lead</th>
+                       </tr>
+                    </thead>
+                    <tbody>
+                       {skillMatrix.map((item, i) => (
+                          <tr key={i} className="group">
+                             <td className="px-4 py-4 bg-white/5 rounded-l-2xl font-black text-xs text-white uppercase tracking-tighter w-48">{item.skill}</td>
+                             {['junior', 'mid', 'senior', 'lead'].map(level => (
+                                <td key={level} className="p-1">
+                                   <div className={`py-3 px-4 rounded-xl border text-[8px] font-black uppercase text-center transition-all ${getStatusColor(item.levels[level])}`}>
+                                      {item.levels[level]}
+                                   </div>
+                                </td>
+                             ))}
+                             <td className="rounded-r-2xl bg-white/5 w-2" />
+                          </tr>
+                       ))}
+                    </tbody>
+                 </table>
+                 {skillMatrix.length === 0 && (
+                    <p className="text-center py-10 text-[10px] font-black text-gray-600 uppercase">Awaiting neural skill analysis.</p>
+                 )}
+              </div>
+           )}
+        </div>
+      )}
 
       {/* Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
