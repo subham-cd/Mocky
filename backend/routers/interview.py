@@ -8,17 +8,26 @@ import asyncio
 
 router = APIRouter(prefix="/interview", tags=["interview"])
 
-INTERVIEWER_SYSTEM_PROMPT = """
-You are Sarah Mitchell, a warm, highly observant, and professional senior interviewer.
-Your job is to conduct a high-stakes but encouraging realistic job interview.
+SARAH_SYSTEM_PROMPT = """
+You are Sarah Mitchell, a warm, observant, and professional HR Manager.
+Your focus: behavioral, situational, and culture fit questions.
+Role: HR Manager at a top-tier tech firm.
 
-Dynamic Interaction Rules:
-1. HUMAN-LIKE REACTIVITY: Always acknowledge specific details from the candidate's last answer. If they mentioned a specific technology, challenge, or result, comment on it briefly (e.g., "That's a fascinating approach to microservices...") before moving on.
-2. ADAPTIVE FLOW: You are not a robot reading a list. If an answer is brief, ask a probing follow-up (e.g., "Could you tell me more about your specific role in that?"). If an answer is comprehensive, provide a quick insight and transition naturally to the next phase.
-3. CONVERSATIONAL TRANSITIONS: Use phrases like "Moving forward," "On a related note," or "I'd like to pivot to..." to keep the dialogue fluid.
-4. PHASING: Aim for a deep conversation. While we target about 6-8 turns, focus on quality. If the candidate is on a roll, keep the momentum.
-5. NO RATINGS: Never give scores, grades, or "Good job" filler during the interview. Stay in character.
-6. BREVITY: Keep each response under 3-4 sentences total (acknowledgment + follow-up/new question).
+Sarah's Logic:
+1. REACTION: Always acknowledge the candidate's last answer (e.g. "That shows great resilience...")
+2. FOCUS: Ask about the "How" and "Why" behind their actions (e.g. "How did you handle conflict there?")
+3. BREVITY: Keep response under 3 sentences.
+"""
+
+ALEX_SYSTEM_PROMPT = """
+You are Alex, a sharp, direct, and elite Technical Lead.
+Your focus: system design, coding architecture, and deep technical constraints.
+Role: Tech Lead with 15+ years experience.
+
+Alex's Logic:
+1. RIGOR: Be polite but probe for technical depth (e.g. "That's a good start, but how does that scale?")
+2. FOCUS: Specific technologies, trade-offs, and Big-O complexity.
+3. BREVITY: Keep response under 3 sentences.
 """
 
 @router.post("/generate-questions")
@@ -50,7 +59,7 @@ async def generate_questions_endpoint(data: dict):
         parsed = safe_parse_groq_json(raw_json)
         if isinstance(parsed, dict) and "questions" in parsed:
             return parsed["questions"]
-        return parsed # Fallback if it's already an array
+        return parsed 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -58,52 +67,72 @@ async def generate_questions_endpoint(data: dict):
 async def live_start(data: dict):
     resume_data = data.get("resume_data")
     role = data.get("target_role")
+    mode = data.get("mode", "solo") # 'solo' or 'panel'
     
     try:
-        user_prompt = f"""
-            Start the interview for a {role} position.
-            Candidate resume summary: {json.dumps(resume_data)}
-            
-            Open with a brief warm greeting (1 sentence), introduce yourself as Sarah,
-            then ask the first question: "Tell me about yourself and what drew you to {role}."
-            Keep it natural and human.
-        """
-        response = await groq_client.get_completion(user_prompt, INTERVIEWER_SYSTEM_PROMPT)
-        return {"opening": response}
+        if mode == "panel":
+            user_prompt = f"""
+                Introduction for a Panel Interview ({role}).
+                Panel: Alex (Tech Lead) and Sarah (HR Manager).
+                Candidate: {json.dumps(resume_data)}
+                
+                Action: Alex should introduce both himself and Sarah briefly, then ask the FIRST technical question.
+                Keep it under 3 sentences.
+            """
+            response = await groq_client.get_completion(user_prompt, ALEX_SYSTEM_PROMPT)
+            return {"opening": response, "agent": "alex"}
+        else:
+            user_prompt = f"""
+                Start the solo interview for a {role} position. Sarah is the interviewer.
+                Candidate: {json.dumps(resume_data)}
+                Ask first question: "Tell me about yourself and your interest in {role}."
+            """
+            response = await groq_client.get_completion(user_prompt, SARAH_SYSTEM_PROMPT)
+            return {"opening": response, "agent": "sarah"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/live-turn")
-async def live_turn(data: dict):
+@router.post("/panel-turn")
+async def panel_turn_stream(data: dict):
     history = data.get("conversation_history")
     resume_data = data.get("resume_data")
     role = data.get("target_role")
-    q_num = data.get("question_number")
+    agent = data.get("agent", "alex") # 'alex' or 'sarah'
     
-    try:
-        system_msg = INTERVIEWER_SYSTEM_PROMPT + f"\nRole: {role}\nResume: {json.dumps(resume_data)}\nThis is question {q_num+1}."
-        response = await groq_client.get_chat_completion(history, system_msg)
-        return {"ai_response": response}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    system_msg = (ALEX_SYSTEM_PROMPT if agent == "alex" else SARAH_SYSTEM_PROMPT) + f"\nRole: {role}\nResume: {json.dumps(resume_data)}"
+    
+    messages = [{"role": "system", "content": system_msg}] + history
+
+    async def generate():
+        try:
+            stream = await groq_client.client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=messages,
+                max_tokens=250,
+                stream=True,
+            )
+            async for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield f"data: {delta}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            yield f"data: Error: {str(e)}\n\n"
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 @router.post("/live-turn-stream")
 async def live_turn_stream(data: dict):
     history = data.get("conversation_history")
     resume_data = data.get("resume_data")
     role = data.get("target_role")
-    q_num = data.get("question_number")
     
-    system_msg = INTERVIEWER_SYSTEM_PROMPT + f"\nRole: {role}\nResume: {json.dumps(resume_data)}\nQuestion {q_num+1}."
-    
+    system_msg = SARAH_SYSTEM_PROMPT + f"\nRole: {role}\nResume: {json.dumps(resume_data)}"
     messages = [{"role": "system", "content": system_msg}] + history
 
     async def generate():
         try:
-            # We need to expose the stream from groq_client or call Groq direct here
-            # For simplicity using the same client pattern as elsewhere
-            # I will modify groq_client to support streaming later if needed, 
-            # but for now I'll implement it here to satisfy Master Plan
             stream = await groq_client.client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=messages,
