@@ -94,14 +94,16 @@ async def live_start(data: dict):
 
 @router.post("/panel-turn")
 async def panel_turn_stream(data: dict):
-    history = data.get("conversation_history")
+    history = data.get("conversation_history", [])
     resume_data = data.get("resume_data")
     role = data.get("target_role")
     agent = data.get("agent", "alex") # 'alex' or 'sarah'
     
     system_msg = (ALEX_SYSTEM_PROMPT if agent == "alex" else SARAH_SYSTEM_PROMPT) + f"\nRole: {role}\nResume: {json.dumps(resume_data)}"
     
-    messages = [{"role": "system", "content": system_msg}] + history
+    # Clean history to remove unsupported properties like 'agent'
+    clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
+    messages = [{"role": "system", "content": system_msg}] + clean_history
 
     async def generate():
         try:
@@ -124,12 +126,15 @@ async def panel_turn_stream(data: dict):
 
 @router.post("/live-turn-stream")
 async def live_turn_stream(data: dict):
-    history = data.get("conversation_history")
+    history = data.get("conversation_history", [])
     resume_data = data.get("resume_data")
     role = data.get("target_role")
     
     system_msg = SARAH_SYSTEM_PROMPT + f"\nRole: {role}\nResume: {json.dumps(resume_data)}"
-    messages = [{"role": "system", "content": system_msg}] + history
+    
+    # Clean history to remove unsupported properties like 'agent'
+    clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
+    messages = [{"role": "system", "content": system_msg}] + clean_history
 
     async def generate():
         try:
@@ -152,9 +157,12 @@ async def live_turn_stream(data: dict):
 
 @router.post("/live-report")
 async def live_report(data: dict):
-    history = data.get("conversation_history")
+    history = data.get("conversation_history", [])
     role = data.get("target_role")
     behavioral = data.get("behavioral_metrics", {})
+    
+    # Clean history for analysis just in case
+    clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
     
     # Nervousness Index Calculation
     filler_count = behavioral.get("filler_count", 0)
@@ -177,7 +185,7 @@ async def live_report(data: dict):
     system_prompt = "You are an expert interview coach. Analyze this complete interview and return ONLY valid JSON."
     user_prompt = f"""
         Analyze this complete interview for a {role} position.
-        Conversation: {json.dumps(history)}
+        Conversation: {json.dumps(clean_history)}
         Behavioral Metrics: {json.dumps(behavioral)}
         Calculated Nervousness: {nervousness_label} ({nervousness_index}/100)
         

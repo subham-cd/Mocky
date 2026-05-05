@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Sparkles, Zap, Target, ShieldCheck, Info, TrendingUp, Download, Loader2, Check, FileText } from 'lucide-react';
+import { Sparkles, Zap, Target, ShieldCheck, Info, TrendingUp, Download, Loader2, Check, FileText, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 import JDTailoringResult from './JDTailoringResult';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ResumePDF from './ResumePDF';
+import { motion } from 'framer-motion';
 
 interface ResumeEnhancerProps {
   resumeText: string;
@@ -55,6 +56,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
     }
   };
 
+  const liftAmount = result ? result.impact_score_after - result.impact_score_before : 0;
+
   return (
     <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-700 pb-20 px-4 md:px-0">
       {loading && (
@@ -70,6 +73,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
             <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest animate-pulse">Surgically rewriting your professional profile...</p>
         </div>
       )}
+      
       {!result && !tailorResult ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* General Enhancement Card */}
@@ -155,84 +159,100 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
           {result && (
             <div className="space-y-12">
                {/* Impact Banner */}
-               <div className="glass-card p-10 rounded-[2.5rem] border-purple-500/20 bg-purple-500/5 flex flex-col md:flex-row items-center justify-around gap-8">
-                  <div className="text-center">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Original Impact</p>
-                    <strong className="text-4xl font-black text-white">{result.impact_score_before}/100</strong>
+               <div className="glass-card p-10 rounded-[2.5rem] border-purple-500/20 bg-purple-500/5 flex flex-col md:flex-row items-center justify-around gap-8 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-indigo-500/5" />
+                  <div className="text-center relative z-10">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Baseline Impact</p>
+                    <strong className="text-4xl font-black text-white">{result.impact_score_before}<span className="text-sm opacity-20 ml-1">/100</span></strong>
                   </div>
-                  <div className="flex flex-col items-center">
-                     <div className="bg-purple-500/20 p-3 rounded-full mb-2 animate-pulse">
-                        <TrendingUp className="text-purple-500" size={24} />
-                     </div>
-                     <div className="text-[10px] font-black text-purple-400 uppercase tracking-widest">
-                       +{result.impact_score_after - result.impact_score_before} Power Lift
-                     </div>
+                  
+                  <div className="flex flex-col items-center relative z-10">
+                     <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className={`p-4 rounded-full mb-2 shadow-2xl ${liftAmount >= 20 ? 'bg-green-500/20 text-green-500' : 'bg-purple-500/20 text-purple-500'}`}
+                     >
+                        <TrendingUp size={32} />
+                     </motion.div>
+                     <motion.div 
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className={`text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full border ${liftAmount >= 20 ? 'bg-green-500/10 border-green-500/30 text-green-500' : 'bg-purple-500/10 border-purple-500/30 text-purple-500'}`}
+                     >
+                       +{liftAmount} POWER LIFT
+                     </motion.div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Optimized Score</p>
-                    <strong className="text-5xl font-black text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">{result.impact_score_after}/100</strong>
+
+                  <div className="text-center relative z-10">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Neural Optimized</p>
+                    <strong className="text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                      {result.impact_score_after}<span className="text-xl opacity-20 ml-1">/100</span>
+                    </strong>
                   </div>
                </div>
 
-               {/* Improvements List */}
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {result.key_improvements?.map((imp: string, i: number) => (
-                    <div key={i} className="p-5 bg-white/5 rounded-2xl border border-white/5 flex items-start gap-4">
-                       <div className="mt-1 bg-purple-500/10 p-1.5 rounded-lg">
-                          <Check size={14} className="text-purple-500" />
+               {/* Key Differentiators */}
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {result.key_differentiators?.map((diff: any, i: number) => (
+                    <div key={i} className="p-6 bg-white/[0.02] rounded-2xl border border-white/5 space-y-3">
+                       <h4 className="text-[9px] font-black text-purple-500 uppercase tracking-widest">{diff.area}</h4>
+                       <div className="space-y-1">
+                          <p className="text-[10px] text-gray-500 line-through">Before: {diff.before}</p>
+                          <p className="text-xs font-bold text-white flex items-center gap-2">
+                             <Check size={12} className="text-green-500" /> {diff.after}
+                          </p>
                        </div>
-                       <p className="text-xs font-bold text-gray-300 leading-relaxed">{imp}</p>
                     </div>
                   ))}
                </div>
 
                {/* Section Diffs */}
-               <div className="space-y-10">
+               <div className="space-y-16">
                   {/* Summary */}
                   <div className="space-y-6">
                     <h4 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] px-2 flex items-center gap-3">
-                       <FileText size={14} /> Professional Summary
+                       <FileText size={14} /> Professional Narrative Update
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       <div className="glass-card p-8 rounded-3xl border-white/5 opacity-50 relative">
-                          <span className="absolute top-4 right-6 text-[9px] font-black text-gray-600 uppercase">Original</span>
-                          <p className="text-sm text-gray-400 font-medium leading-relaxed">{result.sections?.summary?.original}</p>
+                       <div className="glass-card p-8 rounded-3xl border-white/5 opacity-40">
+                          <p className="text-sm text-gray-400 leading-relaxed italic">"{result.sections?.summary?.original}"</p>
                        </div>
-                       <div className="glass-card p-8 rounded-3xl border-purple-500/20 shadow-xl relative">
-                          <span className="absolute top-4 right-6 text-[9px] font-black text-purple-500 uppercase">Enhanced</span>
-                          <p className="text-sm text-white font-bold leading-relaxed">{result.sections?.summary?.enhanced}</p>
+                       <div className="glass-card p-8 rounded-3xl border-purple-500/20 bg-purple-500/5 shadow-xl relative">
+                          <div className="absolute -top-3 -left-3 bg-purple-600 text-white p-2 rounded-lg shadow-lg"><Zap size={16} /></div>
+                          <p className="text-sm text-white font-bold leading-relaxed">"{result.sections?.summary?.enhanced}"</p>
                        </div>
                     </div>
                   </div>
 
-                  {/* Experience */}
-                  <div className="space-y-6">
+                  {/* Experience - The Core Fix */}
+                  <div className="space-y-10">
                     <h4 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] px-2 flex items-center gap-3">
-                       <Zap size={14} /> Work History
+                       <Zap size={14} /> Strategic Bullet Transformation
                     </h4>
                     {result.sections?.experience?.map((exp: any, i: number) => (
-                      <div key={i} className="glass-card p-8 rounded-[2.5rem] border-white/5 space-y-6">
-                         <div className="flex justify-between items-end border-b border-white/5 pb-4">
+                      <div key={i} className="glass-card p-10 rounded-[3rem] border-white/5 space-y-8">
+                         <div className="flex justify-between items-center border-b border-white/5 pb-6">
                             <div>
-                               <h5 className="text-xl font-black text-white">{exp.role}</h5>
-                               <p className="text-xs font-black text-gray-500 uppercase tracking-widest mt-1">{exp.company}</p>
+                               <h5 className="text-2xl font-black text-white tracking-tight">{exp.role}</h5>
+                               <p className="text-xs font-black text-purple-500 uppercase tracking-widest mt-1">{exp.company}</p>
                             </div>
                          </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-3 opacity-50">
-                               {exp.original_bullets?.map((b: string, j: number) => (
-                                  <p key={j} className="text-sm text-gray-400 flex items-start gap-3">
-                                     <span className="mt-2 w-1 h-1 bg-gray-600 rounded-full shrink-0" /> {b}
-                                  </p>
-                               ))}
-                            </div>
-                            <div className="space-y-3">
-                               {exp.enhanced_bullets?.map((b: string, j: number) => (
-                                  <p key={j} className="text-sm text-white font-bold flex items-start gap-3 bg-purple-500/5 p-3 rounded-xl border border-purple-500/10">
-                                     <span className="mt-2 w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0 shadow-[0_0_5px_#a855f7]" /> {b}
-                                  </p>
-                               ))}
-                            </div>
+                         
+                         <div className="space-y-6">
+                            {exp.original_bullets?.map((b: string, j: number) => (
+                               <div key={j} className="grid grid-cols-1 lg:grid-cols-11 gap-6 items-center">
+                                  <div className="lg:col-span-5 p-5 bg-white/[0.01] rounded-2xl border border-dashed border-white/5 opacity-40">
+                                     <p className="text-xs text-gray-400">{b}</p>
+                                  </div>
+                                  <div className="lg:col-span-1 flex justify-center text-purple-500 opacity-20">
+                                     <ArrowRight size={20} />
+                                  </div>
+                                  <div className="lg:col-span-5 p-5 bg-green-500/5 rounded-2xl border border-green-500/10 shadow-sm">
+                                     <p className="text-xs text-white font-bold">{exp.enhanced_bullets?.[j] || 'Optimizing...'}</p>
+                                  </div>
+                               </div>
+                            ))}
                          </div>
                       </div>
                     ))}
@@ -240,23 +260,23 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
 
                   {/* Skills */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <div className="glass-card p-8 rounded-3xl border-white/5">
-                        <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6">Semantic Expansion</h4>
+                     <div className="glass-card p-10 rounded-[2.5rem] border-white/5">
+                        <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-8">Targeted Tech Stack Expansion</h4>
                         <div className="flex flex-wrap gap-2">
                            {result.sections?.skills?.enhanced?.map((s: string) => (
-                              <span key={s} className="px-3 py-1.5 bg-purple-500/10 text-purple-400 text-[10px] font-black rounded-lg border border-purple-500/20 uppercase tracking-wider">
+                              <span key={s} className="px-4 py-2 bg-purple-500/10 text-purple-400 text-[10px] font-black rounded-xl border border-purple-500/20 uppercase tracking-wider">
                                  {s}
                               </span>
                            ))}
                         </div>
                      </div>
-                     <div className="glass-card p-8 rounded-3xl border-green-500/10 bg-green-500/5">
-                        <h4 className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                           <Sparkles size={14} /> Neural Recommendations
+                     <div className="glass-card p-10 rounded-[2.5rem] border-green-500/10 bg-green-500/5">
+                        <h4 className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-8 flex items-center gap-2">
+                           <Sparkles size={14} /> Ecosystem Gap Injections
                         </h4>
                         <div className="flex flex-wrap gap-2">
                            {result.sections?.skills?.added?.map((s: string) => (
-                              <span key={s} className="px-3 py-1.5 bg-green-500/10 text-green-400 text-[10px] font-black rounded-lg border border-green-500/20 uppercase tracking-wider">
+                              <span key={s} className="px-4 py-2 bg-green-500/10 text-green-400 text-[10px] font-black rounded-xl border border-green-500/20 uppercase tracking-wider">
                                  {s}
                               </span>
                            ))}

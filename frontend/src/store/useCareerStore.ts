@@ -27,6 +27,7 @@ interface CareerState {
   setInterviewReport: (report: any) => void;
   
   saveSession: (sessionData: Partial<Session>) => void;
+  deleteSession: (sessionId: number) => void;
   getCareerHealth: () => number;
   clearAll: () => void;
 }
@@ -63,6 +64,10 @@ export const useCareerStore = create<CareerState>()(
           sessions: [newSession, ...state.sessions].slice(0, 15)
         };
       }),
+
+      deleteSession: (sessionId) => set((state) => ({
+        sessions: state.sessions.filter(s => s.id !== sessionId)
+      })),
       
       getCareerHealth: () => {
         const { atsResult, interviewReport, resumeData, sessions } = get();

@@ -70,12 +70,14 @@ async def get_skill_matrix(data: dict):
       "matrix": [
         {
           "skill": "React",
+          "overall_mastery": 0-100,
           "levels": {
             "junior": "strong | partial | gap",
             "mid": "strong | partial | gap",
             "senior": "strong | partial | gap",
             "lead": "strong | partial | gap"
-          }
+          },
+          "advice": "Short 1-sentence advice on how to reach the next tier."
         }
       ]
     }
@@ -85,7 +87,9 @@ async def get_skill_matrix(data: dict):
     - partial: Candidate knows the basics or has used it in small tasks.
     - gap: Candidate needs to learn this or hasn't demonstrated it.
     """
-    user_prompt = f"Target Role: {target_role}\nCandidate Skills: {', '.join(skills)}"
+    # Limit to top 8 skills to keep UI clean
+    top_skills = skills[:8]
+    user_prompt = f"Target Role: {target_role}\nCandidate Skills: {', '.join(top_skills)}"
     
     try:
         raw_json = await groq_client.get_json_completion(user_prompt, system_prompt)
@@ -99,21 +103,27 @@ async def enhance_resume_endpoint(data: dict):
     target_role = data.get("target_role", "Software Engineer")
     
     system_prompt = """
-    You are an expert resume writer. Rewrite the given resume to be more impactful.
+    You are an elite Career Strategist and Resume Architect. Your goal is to maximize the impact score of a candidate's resume.
 
-    Rules:
-    - Use strong action verbs (Led, Engineered, Optimised, Delivered, Architected)
-    - Add metrics where possible (even estimated ones like "~30% faster")
-    - Keep same facts, just improve phrasing
-    - Do NOT invent new experience
+    1. SCORING CRITERIA (0-20 points each, Total 100):
+       - Action Verbs: Are bullets led by strong verbs (Led, Engineered, Optimized)?
+       - Quantified Metrics: Are there numbers, %, or $ to prove impact?
+       - Role Keyword Density: Does it use terminology specific to the target role?
+       - Section Completeness: Are summary, skills, and experience robust?
+       - Narrative Strength: Is the progression logical and compelling?
 
-    Return ONLY raw JSON, no markdown.
+    2. ENHANCEMENT RULES:
+       - Rewrite summary to be a "Neural Narrative" that bridges current skills to the target role.
+       - Transform weak bullets (e.g., "worked on React") into impact-driven bullets (e.g., "Architected scalable frontend components using React, reducing load time by ~25%").
+       - Injected relevant role-specific keywords.
+       - DO NOT invent companies or degrees, but you MAY extrapolate metrics based on typical industry outcomes.
+
+    3. RETURN STRUCTURE:
     {
+      "impact_score_before": <Calculate score 0-100 of original text based on 5 criteria>,
+      "impact_score_after": <Calculate score 0-100 of enhanced text based on 5 criteria>,
       "sections": {
-        "summary": {
-          "original": "...",
-          "enhanced": "..."
-        },
+        "summary": { "original": "...", "enhanced": "..." },
         "experience": [
           {
             "company": "...",
@@ -125,27 +135,20 @@ async def enhance_resume_endpoint(data: dict):
         "skills": {
           "original": ["..."],
           "enhanced": ["..."],
-          "added": ["new skill suggestions based on existing skills"]
-        },
-        "projects": [
-          {
-            "name": "...",
-            "original": "...",
-            "enhanced": "..."
-          }
-        ]
+          "added": ["..."]
+        }
       },
-      "impact_score_before": 0,
-      "impact_score_after": 0,
-      "key_improvements": ["improvement 1", "improvement 2"]
+      "key_differentiators": [
+        {"area": "Action Verbs", "before": "Low density", "after": "90% high-impact coverage"},
+        {"area": "Quantification", "before": "None detected", "after": "Every bullet includes metrics"}
+      ]
     }
     """
-    user_prompt = f"Target Role: {target_role}\nResume Text:\n{resume_text}"
+    user_prompt = f"Target Role: {target_role}\nOriginal Resume Content:\n{resume_text}"
     
     try:
         raw_json = await groq_client.get_json_completion(user_prompt, system_prompt)
-        parsed = safe_parse_groq_json(raw_json)
-        return parsed
+        return safe_parse_groq_json(raw_json)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

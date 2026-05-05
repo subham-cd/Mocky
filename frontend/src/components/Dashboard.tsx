@@ -3,9 +3,10 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid } from 'lucide-react';
+import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid, CheckCircle2, AlertCircle, HelpCircle, Trash2 } from 'lucide-react';
 import { useCareerStore } from '../store/useCareerStore';
 import { useHydration } from '../hooks/useHydration';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
 interface DashboardProps {
@@ -17,7 +18,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const hydrated = useHydration();
   const { 
     sessions, atsResult, interviewReport, targetRole, 
-    setTargetRole, getCareerHealth, resumeData 
+    setTargetRole, getCareerHealth, resumeData, deleteSession
   } = useCareerStore();
 
   const [skillMatrix, setSkillMatrix] = useState<any[]>([]);
@@ -65,17 +66,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     .filter(s => (s.ats_score !== undefined && s.ats_score > 0) || (s.interview_score !== undefined && s.interview_score > 0))
     .map(s => ({ date: s.date, score: s.ats_score || s.interview_score || 0 }));
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'strong': return 'bg-green-500/20 border-green-500/30 text-green-500';
-      case 'partial': return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-500';
-      case 'gap': return 'bg-red-500/20 border-red-500/30 text-red-500';
-      default: return 'bg-white/5 border-white/5 text-gray-600';
+      case 'strong': return { color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500/30' };
+      case 'partial': return { color: 'text-yellow-400', bg: 'bg-yellow-500/20', border: 'border-yellow-500/30' };
+      case 'gap': return { color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/30' };
+      default: return { color: 'text-gray-500', bg: 'bg-white/5', border: 'border-white/5' };
     }
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-12 animate-in fade-in duration-700 pb-20">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02] p-10 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
          {isGuest && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500/50 via-orange-500/50 to-yellow-500/50 animate-pulse"></div>}
@@ -175,68 +176,93 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
          </div>
       </div>
 
-      {/* Skill Heatmap Widget */}
+      {/* Skill Readiness Heatmap - Modern UI */}
       {!isGuest && (
-        <div className="glass-card p-10 rounded-[3.5rem] overflow-hidden border-blue-500/10 bg-blue-500/5">
-           <div className="flex justify-between items-center mb-10">
+        <div className="glass-card p-10 rounded-[3.5rem] border-white/5 relative overflow-hidden bg-white/[0.01]">
+           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
               <div>
-                 <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
-                    <LayoutGrid size={14} /> Skill Readiness Heatmap
+                 <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                    <LayoutGrid className="text-blue-500" /> Neural Skill Projection
                  </h3>
-                 <p className="text-xs text-gray-400 mt-1">Mastery levels across seniority tiers</p>
+                 <p className="text-xs text-gray-500 mt-2 font-medium">Visualizing your depth and career readiness across industry tiers.</p>
               </div>
-              <div className="flex gap-4">
-                 {['Strong', 'Partial', 'Gap'].map(l => (
-                    <div key={l} className="flex items-center gap-2">
-                       <div className={`w-2 h-2 rounded-full ${getStatusColor(l).split(' ')[0]}`} />
-                       <span className="text-[8px] font-black uppercase text-gray-500">{l}</span>
-                    </div>
-                 ))}
+              <div className="flex items-center gap-6 bg-black/20 p-4 rounded-2xl border border-white/5">
+                 {['Strong', 'Partial', 'Gap'].map(l => {
+                    const style = getStatusStyle(l);
+                    return (
+                       <div key={l} className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-md ${style.bg} ${style.border} border`} />
+                          <span className="text-[10px] font-black uppercase text-gray-400">{l}</span>
+                       </div>
+                    );
+                 })}
               </div>
            </div>
 
            {loadingMatrix ? (
-              <div className="py-20 space-y-4">
-                 {[1, 2, 3, 4, 5].map(i => (
-                    <div key={i} className="flex gap-4 animate-pulse">
-                       <div className="h-10 bg-white/5 rounded-xl flex-1" />
-                       <div className="h-10 bg-white/5 rounded-xl w-16" />
-                       <div className="h-10 bg-white/5 rounded-xl w-16" />
-                       <div className="h-10 bg-white/5 rounded-xl w-16" />
-                       <div className="h-10 bg-white/5 rounded-xl w-16" />
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                 {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="h-64 bg-white/5 rounded-3xl animate-pulse" />
                  ))}
               </div>
            ) : (
-              <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
-                 <table className="w-full text-left border-separate border-spacing-y-2 min-w-[600px]">
-                    <thead>
-                       <tr className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
-                          <th className="px-4 pb-4">Skill Domain</th>
-                          <th className="px-4 pb-4 text-center">Junior</th>
-                          <th className="px-4 pb-4 text-center">Mid</th>
-                          <th className="px-4 pb-4 text-center">Senior</th>
-                          <th className="px-4 pb-4 text-center">Lead</th>
-                       </tr>
-                    </thead>
-                    <tbody>
-                       {skillMatrix.map((item, i) => (
-                          <tr key={i} className="group">
-                             <td className="px-4 py-4 bg-white/5 rounded-l-2xl font-black text-xs text-white uppercase tracking-tighter w-48">{item.skill}</td>
-                             {['junior', 'mid', 'senior', 'lead'].map(level => (
-                                <td key={level} className="p-1">
-                                   <div className={`py-3 px-4 rounded-xl border text-[8px] font-black uppercase text-center transition-all ${getStatusColor(item.levels[level])}`}>
-                                      {item.levels[level]}
-                                   </div>
-                                </td>
-                             ))}
-                             <td className="rounded-r-2xl bg-white/5 w-2" />
-                          </tr>
-                       ))}
-                    </tbody>
-                 </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                 {skillMatrix.map((item, i) => (
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="glass-card p-8 rounded-[2.5rem] border-white/5 group hover:bg-white/[0.03]"
+                    >
+                       <div className="flex justify-between items-start mb-8">
+                          <h4 className="text-lg font-black text-white uppercase tracking-tighter truncate w-3/4">{item.skill}</h4>
+                          <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+                             <Zap size={16} />
+                          </div>
+                       </div>
+
+                       {/* Mastery Bar */}
+                       <div className="space-y-4 mb-8">
+                          <div className="flex justify-between text-[10px] font-black uppercase text-gray-500">
+                             <span>Mastery</span>
+                             <span className="text-white">{item.overall_mastery || 0}%</span>
+                          </div>
+                          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                             <motion.div 
+                               initial={{ width: 0 }}
+                               animate={{ width: `${item.overall_mastery || 0}%` }}
+                               className="h-full bg-blue-500 shadow-[0_0_10px_#3b82f6]"
+                             />
+                          </div>
+                       </div>
+
+                       {/* Tiers Heatmap */}
+                       <div className="grid grid-cols-4 gap-2 mb-8">
+                          {['junior', 'mid', 'senior', 'lead'].map((tier) => {
+                             const style = getStatusStyle(item.levels[tier]);
+                             return (
+                                <div key={tier} className="flex flex-col items-center gap-2">
+                                   <div className={`w-full h-10 rounded-lg border transition-all duration-500 ${style.bg} ${style.border} group-hover:scale-105`} title={`${tier.toUpperCase()}: ${item.levels[tier]}`} />
+                                   <span className="text-[8px] font-black text-gray-600 uppercase">{tier[0]}</span>
+                                </div>
+                             );
+                          })}
+                       </div>
+
+                       <div className="pt-6 border-t border-white/5">
+                          <div className="flex items-start gap-3">
+                             <HelpCircle size={14} className="text-gray-500 shrink-0 mt-0.5" />
+                             <p className="text-[10px] font-medium text-gray-400 leading-relaxed italic">"{item.advice}"</p>
+                          </div>
+                       </div>
+                    </motion.div>
+                 ))}
                  {skillMatrix.length === 0 && (
-                    <p className="text-center py-10 text-[10px] font-black text-gray-600 uppercase">Awaiting neural skill analysis.</p>
+                    <div className="col-span-full py-20 text-center flex flex-col items-center opacity-30">
+                       <LayoutGrid size={48} className="mb-4 text-gray-500" />
+                       <p className="font-black uppercase tracking-[0.3em] text-xs">Neural Skill telemetry pending upload.</p>
+                    </div>
                  )}
               </div>
            )}
@@ -287,7 +313,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <table className="w-full text-left">
                <thead>
                   <tr className="border-b border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                     <th className="pb-6 px-4">Timestamp</th><th className="pb-6 px-4">Operation</th><th className="pb-6 px-4 text-center">Score</th><th className="pb-6 px-4 text-right">Integrity Check</th>
+                     <th className="pb-6 px-4">Timestamp</th><th className="pb-6 px-4">Operation</th><th className="pb-6 px-4 text-center">Score</th><th className="pb-6 px-4 text-right">Actions</th>
                   </tr>
                </thead>
                <tbody className="divide-y divide-white/5">
@@ -306,9 +332,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                            </span>
                         </td>
                         <td className="py-6 px-4 text-right">
-                           <div className="flex items-center justify-end gap-3 text-gray-600 group-hover:text-blue-500 transition-colors">
-                              <span className="text-[10px] font-black uppercase tracking-widest">Verified</span>
-                              <ExternalLink size={12} />
+                           <div className="flex items-center justify-end gap-4">
+                              <button className="inline-flex items-center gap-2 text-gray-600 hover:text-white transition-colors">
+                                 <span className="text-[9px] font-black uppercase tracking-widest">Audit</span>
+                                 <ExternalLink size={12} />
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
+                                className="p-2 text-gray-600 hover:text-red-500 transition-colors"
+                                title="Delete Log"
+                              >
+                                 <Trash2 size={14} />
+                              </button>
                            </div>
                         </td>
                      </tr>

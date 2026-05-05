@@ -111,6 +111,7 @@ function App() {
         <InterviewDebrief 
           report={interviewReport} 
           onRestart={() => { setShowDebrief(false); navigate('/interview'); }} 
+          onDashboard={() => { setShowDebrief(false); navigate('/dashboard'); }}
         />
       )}
 

@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp, Activity } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface InterviewDebriefProps {
   report: any;
   onRestart: () => void;
+  onDashboard: () => void;
 }
 
-const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart }) => {
+const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart, onDashboard }) => {
   const [displayScore, setDisplayScore] = useState(0);
   const [openQ, setOpenQ] = useState<number | null>(null);
-  const navigate = useNavigate();
   
   useEffect(() => {
     let current = 0;
@@ -93,7 +92,7 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart }
 
         <div className="flex justify-center gap-6 pb-20">
            <button onClick={onRestart} className="px-12 py-5 bg-white text-black rounded-2xl font-black uppercase flex items-center gap-3"><RefreshCcw size={16} /> Restart</button>
-           <button onClick={() => navigate('/dashboard')} className="px-12 py-5 bg-white/5 text-gray-400 rounded-2xl font-black uppercase flex items-center gap-3"><LayoutDashboard size={16} /> Dashboard</button>
+           <button onClick={onDashboard} className="px-12 py-5 bg-white/5 text-gray-400 rounded-2xl font-black uppercase flex items-center gap-3"><LayoutDashboard size={16} /> Dashboard</button>
         </div>
       </div>
     </div>
