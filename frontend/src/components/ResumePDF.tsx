@@ -17,20 +17,68 @@ const styles = StyleSheet.create({
   summary: { fontSize: 10, color: '#333', lineHeight: 1.6, marginBottom: 4 },
 });
 
-interface ResumePDFProps { resumeData: any; tailoredData?: any; }
+interface ResumePDFProps { 
+    resumeData: any; 
+    tailoredData?: any; 
+    enhancedData?: any; 
+}
 
-export const ResumePDF: React.FC<ResumePDFProps> = ({ resumeData, tailoredData = null }) => {
-  const name = resumeData?.name || 'Your Name';
+export const ResumePDF: React.FC<ResumePDFProps> = ({ resumeData, tailoredData = null, enhancedData = null }) => {
+  const name = resumeData?.name || 'Professional Candidate';
   const email = resumeData?.email || '';
   const phone = resumeData?.phone || '';
   const location = resumeData?.location || '';
-  const summary = tailoredData?.tailored_summary?.tailored || resumeData?.summary || '';
-  const skills = tailoredData ? [...(resumeData?.skills || []), ...(tailoredData?.skills_to_add || [])] : (resumeData?.skills || []);
-  const experience = resumeData?.experience || [];
+  
+  // Choose summary: Tailored > Enhanced > Original
+  const summary = tailoredData?.tailored_summary?.tailored || enhancedData?.sections?.summary?.enhanced || resumeData?.summary || '';
+  
+  // Merge Skills
+  let skills = resumeData?.skills || [];
+  if (enhancedData?.sections?.skills?.enhanced) {
+    skills = enhancedData.sections.skills.enhanced;
+  } else if (tailoredData) {
+    skills = [...skills, ...(tailoredData?.skills_to_add || [])];
+  }
+
+  // Merge Experience (Surgical Swap of Bullets)
+  let experience = resumeData?.experience || [];
+  if (enhancedData?.sections?.experience) {
+    experience = experience.map((exp: any, i: number) => {
+      const match = enhancedData.sections.experience[i];
+      if (match && match.enhanced_bullets) {
+        return { ...exp, description: match.enhanced_bullets };
+      }
+      return exp;
+    });
+  } else if (tailoredData?.bullet_rewrites) {
+    experience = experience.map((exp: any) => {
+      const descriptions = Array.isArray(exp.description) ? exp.description : [exp.description];
+      const rewrittenDesc = descriptions.map((bullet: string) => {
+        const rewrite = tailoredData.bullet_rewrites.find((r: any) => r.original === bullet);
+        return rewrite ? rewrite.tailored : bullet;
+      });
+      return { ...exp, description: rewrittenDesc };
+    });
+  }
+
+  // Merge Projects
+  let projects = resumeData?.projects || [];
+  if (enhancedData?.sections?.projects) {
+    projects = projects.map((proj: any, i: number) => {
+      const match = enhancedData.sections.projects[i];
+      if (match && match.enhanced_bullets) {
+        return { ...proj, description: match.enhanced_bullets };
+      }
+      return proj;
+    });
+  }
+
+  const education = resumeData?.education || [];
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{name}</Text>
           <View style={styles.contact}>
@@ -39,17 +87,79 @@ export const ResumePDF: React.FC<ResumePDFProps> = ({ resumeData, tailoredData =
             {location && <Text>{location}</Text>}
           </View>
         </View>
-        {summary && <View><Text style={styles.sectionTitle}>Summary</Text><Text style={styles.summary}>{summary}</Text></View>}
-        {skills.length > 0 && <View><Text style={styles.sectionTitle}>Skills</Text><View style={styles.skillsWrap}>{skills.map((s: string, i: number) => <Text key={i} style={styles.skillChip}>{s}</Text>)}</View></View>}
+
+        {/* Summary */}
+        {summary && (
+          <View>
+            <Text style={styles.sectionTitle}>Professional Summary</Text>
+            <Text style={styles.summary}>{summary}</Text>
+          </View>
+        )}
+
+        {/* Skills */}
+        {skills.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Skills & Competencies</Text>
+            <View style={styles.skillsWrap}>
+              {skills.map((s: string, i: number) => (
+                <Text key={i} style={styles.skillChip}>{s}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Experience */}
         {experience.length > 0 && (
           <View>
             <Text style={styles.sectionTitle}>Experience</Text>
             {experience.map((exp: any, i: number) => (
-              <View key={i} style={{ marginBottom: 10 }}>
-                <View style={styles.experienceHeader}><Text style={styles.companyName}>{exp.role} — {exp.company}</Text><Text style={styles.dateText}>{exp.duration || exp.date}</Text></View>
+              <View key={i} style={{ marginBottom: 12 }}>
+                <View style={styles.experienceHeader}>
+                  <Text style={styles.companyName}>{exp.role} | {exp.company}</Text>
+                  <Text style={styles.dateText}>{exp.duration || exp.date}</Text>
+                </View>
                 {(Array.isArray(exp.description) ? exp.description : [exp.description]).map((b: string, j: number) => (
-                  <View key={j} style={styles.bullet}><Text style={styles.bulletDot}>•</Text><Text style={styles.bulletText}>{b}</Text></View>
+                  <View key={j} style={styles.bullet}>
+                    <Text style={styles.bulletDot}>•</Text>
+                    <Text style={styles.bulletText}>{b}</Text>
+                  </View>
                 ))}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Projects */}
+        {projects.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Projects</Text>
+            {projects.map((proj: any, i: number) => (
+              <View key={i} style={{ marginBottom: 12 }}>
+                <View style={styles.experienceHeader}>
+                  <Text style={styles.companyName}>{proj.name}</Text>
+                </View>
+                {(Array.isArray(proj.description) ? proj.description : [proj.description]).map((b: string, j: number) => (
+                  <View key={j} style={styles.bullet}>
+                    <Text style={styles.bulletDot}>•</Text>
+                    <Text style={styles.bulletText}>{b}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Education */}
+        {education.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Education</Text>
+            {education.map((edu: any, i: number) => (
+              <View key={i} style={{ marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.companyName}>{edu.institution}</Text>
+                  <Text style={{ fontSize: 9, color: '#333' }}>{edu.degree}</Text>
+                </View>
+                <Text style={styles.dateText}>{edu.year}</Text>
               </View>
             ))}
           </View>

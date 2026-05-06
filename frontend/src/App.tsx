@@ -250,7 +250,7 @@ function App() {
               ) : <Navigate to="/" replace />} />
 
               <Route path="/enhance" element={isSessionActive ? (
-                resumeData ? <ResumeEnhancer resumeText={resumeData.raw_text} targetRole={targetRole} jobDescription={jd} /> : (
+                resumeData ? <ResumeEnhancer resumeData={resumeData} targetRole={targetRole} jobDescription={jd} /> : (
                   <div className="glass-card p-20 rounded-[3rem] text-center border-white/10">
                     <Sparkles size={64} className="text-gray-800 mx-auto mb-8" />
                     <h3 className="text-2xl font-black text-white uppercase">Resume Required</h3>

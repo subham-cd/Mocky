@@ -3,7 +3,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid, CheckCircle2, AlertCircle, HelpCircle, Trash2 } from 'lucide-react';
+import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid, CheckCircle2, AlertCircle, HelpCircle, Trash2, X, ShieldCheck, Terminal, UserCheck } from 'lucide-react';
 import { useCareerStore } from '../store/useCareerStore';
 import { useHydration } from '../hooks/useHydration';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,6 +23,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   const [skillMatrix, setSkillMatrix] = useState<any[]>([]);
   const [loadingMatrix, setLoadingMatrix] = useState(false);
+  const [showReadinessDetail, setShowReadinessModal] = useState(false);
 
   useEffect(() => {
     const fetchMatrix = async () => {
@@ -53,6 +54,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const latestSession = sessions[0] || null;
   const healthColor = healthScore >= 75 ? '#10b981' : healthScore >= 50 ? '#f59e0b' : '#ef4444';
 
+  const subScores = {
+    interview: interviewReport?.overall_score || (isGuest ? 65 : 0),
+    ats: atsResult?.ats_score || (isGuest ? 45 : 0),
+    coding: sessions.filter(s => s.type === 'coding').length > 0 
+      ? Math.round(sessions.filter(s => s.type === 'coding').reduce((a, b) => a + (b.interview_score || 0), 0) / sessions.filter(s => s.type === 'coding').length)
+      : (isGuest ? 50 : 0),
+    profile: resumeData ? 100 : 40
+  };
+
   const radarData = [
     { subject: 'Technical', score: latestSession?.radar_scores?.technical_depth ?? interviewReport?.dimension_scores?.technical_depth ?? (isGuest ? 60 : 0) },
     { subject: 'Communication', score: latestSession?.radar_scores?.communication ?? interviewReport?.dimension_scores?.communication ?? (isGuest ? 70 : 0) },
@@ -77,6 +87,72 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700 pb-20">
+      
+      {/* Readiness Breakdown Modal */}
+      <AnimatePresence>
+        {showReadinessDetail && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setShowReadinessModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-[#0a0c10] border border-white/10 rounded-[3rem] p-12 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-green-500" />
+              <button onClick={() => setShowReadinessModal(false)} className="absolute top-8 right-8 text-gray-500 hover:text-white transition-colors">
+                <X size={24} />
+              </button>
+
+              <div className="space-y-10">
+                <div className="text-center">
+                   <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">Neural Readiness Engine</h2>
+                   <p className="text-gray-400 text-sm font-medium">Detailed breakdown of your hiring probability index.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   {[
+                     { label: 'Interview Logic', score: subScores.interview, weight: '40%', icon: <Activity className="text-purple-500" />, desc: 'Voice confidence and technical depth' },
+                     { label: 'ATS Alignment', score: subScores.ats, weight: '30%', icon: <Target className="text-blue-500" />, desc: 'Resume keyword match vs market' },
+                     { label: 'Coding Efficiency', score: subScores.coding, weight: '20%', icon: <Terminal className="text-green-500" />, desc: 'Algorithmic Big-O performance' },
+                     { label: 'Profile Integrity', score: subScores.profile, weight: '10%', icon: <ShieldCheck className="text-yellow-500" />, desc: 'Completeness of professional data' }
+                   ].map((item) => (
+                     <div key={item.label} className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-4">
+                        <div className="flex justify-between items-start">
+                           <div className="p-3 bg-white/5 rounded-2xl">{item.icon}</div>
+                           <div className="text-right">
+                              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest block mb-1">Weight: {item.weight}</span>
+                              <span className="text-xl font-black text-white">{item.score}%</span>
+                           </div>
+                        </div>
+                        <div>
+                           <h4 className="text-xs font-black text-gray-200 uppercase mb-1">{item.label}</h4>
+                           <p className="text-[10px] text-gray-500 font-medium">{item.desc}</p>
+                        </div>
+                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                           <div className="h-full bg-blue-500/50" style={{ width: `${item.score}%` }} />
+                        </div>
+                     </div>
+                   ))}
+                </div>
+
+                <div className="p-8 bg-blue-500/5 border border-blue-500/10 rounded-[2rem] text-center">
+                   <p className="text-sm font-medium text-blue-300 italic leading-relaxed">
+                      "Your Hiring Readiness is a composite metric. To increase it, we recommend focusing on <span className="text-white font-black">{subScores.ats < subScores.interview ? 'Resume Optimization' : 'Interview Practice'}</span> to move the needle faster."
+                   </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02] p-10 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
          {isGuest && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500/50 via-orange-500/50 to-yellow-500/50 animate-pulse"></div>}
@@ -84,11 +160,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <h1 className="text-4xl font-black text-white tracking-tighter uppercase mb-2">
                {isGuest ? "Mission Control" : "Command Center"}
             </h1>
-            <p className="text-gray-400 text-xs font-medium tracking-wide">
+            <p className="text-gray-400 text-xs font-medium tracking-wide text-center md:text-left leading-relaxed">
                {isGuest ? "System in Simulation Mode. Data accuracy restricted." : "Real-time analysis of your professional trajectory."}
             </p>
          </div>
-         <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/10 group hover:border-blue-500/50 transition-all">
+         <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/10 group hover:border-blue-500/50 transition-all shrink-0">
             <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mr-2">Targeting</div>
             <select value={targetRole} onChange={e => setTargetRole(e.target.value)} className="bg-transparent border-none p-0 text-sm font-black text-white cursor-pointer focus:ring-0">
               <option className="bg-gray-900">Software Engineer</option>
@@ -100,25 +176,62 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         {/* Readiness Score */}
-         <div className="glass-card p-10 rounded-[3rem] flex flex-col items-center justify-center text-center group relative overflow-hidden">
-            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-8 flex items-center gap-2">
-               <Brain size={14} className="text-blue-500" /> Hiring Readiness
-            </h3>
-            <div className="relative w-48 h-48 flex items-center justify-center mb-8">
-               <svg className="w-full h-full transform -rotate-90 scale-110">
-                  <circle cx="96" cy="96" r="88" stroke="rgba(255,255,255,0.03)" strokeWidth="8" fill="transparent" />
-                  <circle cx="96" cy="96" r="88" stroke={isGuest ? '#f59e0b' : healthColor} strokeWidth="12" fill="transparent" strokeDasharray={552.9} strokeDashoffset={552.9 - (552.9 * (isGuest ? 45 : healthScore)) / 100} strokeLinecap="round" className="transition-all duration-1000" />
-               </svg>
-               <div className="absolute flex flex-col items-center">
-                  <span className="text-6xl font-black text-white tracking-tighter">{isGuest ? 'SIM' : healthScore || '--'}</span>
-                  <span className="text-[10px] font-black text-gray-500 uppercase">Percentile</span>
+         {/* Readiness Score - ENHANCED & INTERACTIVE */}
+         <button 
+           onClick={() => setShowReadinessModal(true)}
+           className="glass-card p-10 rounded-[3rem] flex flex-col items-center justify-center text-center group relative overflow-hidden text-left hover:scale-[1.02] active:scale-95 transition-all outline-none"
+         >
+            <div className="absolute inset-0 opacity-20 pointer-events-none transition-colors duration-1000" style={{ background: `radial-gradient(circle at center, ${isGuest ? '#f59e0b' : healthColor} 0%, transparent 70%)` }}></div>
+            
+            <div className="w-full flex justify-between items-start mb-6 z-10">
+               <div>
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                     <Brain size={14} className="text-blue-500" /> Hiring Readiness
+                  </h3>
+                  <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest mt-1 text-left">Click for details</p>
+               </div>
+               <div className="p-2 bg-white/5 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                  <ExternalLink size={12} className="text-gray-400 group-hover:text-blue-500" />
                </div>
             </div>
-            <p className="text-xs font-black uppercase tracking-widest py-2 px-6 rounded-full border border-white/5 bg-white/5" style={{ color: isGuest ? '#f59e0b' : healthColor }}>
-               {isGuest ? "Baseline Potential" : (healthScore >= 75 ? "Market Ready 🚀" : "Needs Optimization ⚡")}
-            </p>
-         </div>
+            
+            <div className="relative w-48 h-48 flex items-center justify-center mb-10 z-10">
+               <svg className="w-full h-full transform -rotate-90 scale-110 drop-shadow-2xl">
+                  <circle cx="96" cy="96" r="88" stroke="rgba(255,255,255,0.03)" strokeWidth="12" fill="transparent" />
+                  <motion.circle 
+                     cx="96" cy="96" r="88" 
+                     stroke={isGuest ? '#f59e0b' : healthColor} 
+                     strokeWidth="12" 
+                     fill="transparent" 
+                     strokeDasharray={552.9} 
+                     initial={{ strokeDashoffset: 552.9 }}
+                     animate={{ strokeDashoffset: 552.9 - (552.9 * (isGuest ? 45 : healthScore)) / 100 }}
+                     transition={{ duration: 1.5, ease: "easeOut" }}
+                     strokeLinecap="round" 
+                  />
+               </svg>
+               <div className="absolute flex flex-col items-center">
+                  <motion.span initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-6xl font-black text-white tracking-tighter">
+                     {isGuest ? 'SIM' : healthScore || '--'}
+                  </motion.span>
+                  <span className="text-[10px] font-black text-gray-500 uppercase">Neural Index</span>
+               </div>
+            </div>
+            
+            <div className="z-10 w-full space-y-4">
+               <p className="text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md" style={{ color: isGuest ? '#f59e0b' : healthColor }}>
+                  {isGuest ? "Baseline Potential" : (healthScore >= 75 ? "Market Ready 🚀" : healthScore >= 50 ? "Competitive ⚡" : "Needs Optimization 🔧")}
+               </p>
+               
+               {/* Quick stats on card */}
+               <div className="flex gap-2 justify-center">
+                  <div className={`h-1 flex-1 rounded-full ${subScores.interview > 0 ? 'bg-purple-500' : 'bg-white/5'}`} />
+                  <div className={`h-1 flex-1 rounded-full ${subScores.ats > 0 ? 'bg-blue-500' : 'bg-white/5'}`} />
+                  <div className={`h-1 flex-1 rounded-full ${subScores.coding > 0 ? 'bg-green-500' : 'bg-white/5'}`} />
+                  <div className={`h-1 flex-1 rounded-full bg-yellow-500`} />
+               </div>
+            </div>
+         </button>
 
          {/* ATS Insights */}
          <div className="glass-card p-10 rounded-[3rem] flex flex-col justify-between group">
@@ -313,7 +426,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <table className="w-full text-left">
                <thead>
                   <tr className="border-b border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                     <th className="pb-6 px-4">Timestamp</th><th className="pb-6 px-4">Operation</th><th className="pb-6 px-4 text-center">Score</th><th className="pb-6 px-4 text-right">Actions</th>
+                     <th className="pb-6 px-4">Timestamp</th><th className="pb-6 px-4">Operation</th><th className="pb-6 px-4 text-center">Score Index</th><th className="pb-6 px-4 text-right">Actions</th>
                   </tr>
                </thead>
                <tbody className="divide-y divide-white/5">
@@ -322,13 +435,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                         <td className="py-6 px-4 text-[11px] font-bold text-gray-500 tracking-tight">{s.date}</td>
                         <td className="py-6 px-4">
                            <div className="flex flex-col">
-                              <span className="text-sm font-black text-white uppercase tracking-tighter">{s.target_role}</span>
-                              <span className="text-[9px] text-gray-600 font-bold uppercase">{s.type || 'Standard Analysis'}</span>
+                              <span className="text-sm font-black text-white uppercase tracking-tighter group-hover:text-blue-500 transition-colors">{s.target_role}</span>
+                              <span className="text-[9px] text-gray-600 font-black uppercase tracking-widest mt-0.5">{s.type || 'Standard Sync'}</span>
                            </div>
                         </td>
                         <td className="py-6 px-4 text-center">
-                           <span className={`text-sm font-black ${s.ats_score > 70 ? 'text-green-500' : 'text-blue-400'}`}>
-                              {s.ats_score}%
+                           <span className={`text-sm font-black px-4 py-1.5 rounded-xl border ${s.ats_score > 70 || s.interview_score > 70 ? 'text-green-500 bg-green-500/5 border-green-500/10' : 'text-blue-500 bg-blue-500/5 border-blue-500/10'}`}>
+                              {s.ats_score || s.interview_score || 0}%
                            </span>
                         </td>
                         <td className="py-6 px-4 text-right">

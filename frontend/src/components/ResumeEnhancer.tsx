@@ -7,12 +7,12 @@ import ResumePDF from './ResumePDF';
 import { motion } from 'framer-motion';
 
 interface ResumeEnhancerProps {
-  resumeText: string;
+  resumeData: any;
   targetRole: string;
   jobDescription?: string;
 }
 
-const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole, jobDescription }) => {
+const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeData, targetRole, jobDescription }) => {
   const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'general' | 'tailor'>('general');
@@ -24,7 +24,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/resume/enhance`, {
-        resume_text: resumeText,
+        resume_text: resumeData.raw_text,
         target_role: targetRole
       });
       setResult(response.data);
@@ -42,7 +42,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/resume/tailor`, {
-        resume_text: resumeText,
+        resume_text: resumeData.raw_text,
         job_description: jobDescription
       });
       if (response.data.success) {
@@ -137,15 +137,13 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ resumeText, targetRole,
                 </div>
              </div>
              <div className="flex items-center gap-4">
-                {result && (
-                  <PDFDownloadLink
-                    document={<ResumePDF resumeData={{...result, skills: result.sections?.skills?.enhanced}} />}
-                    fileName="optimized_resume.pdf"
-                    className="px-8 py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl flex items-center gap-2"
-                  >
-                    {({ loading: l }) => (l ? <Loader2 className="animate-spin" size={14} /> : <><Download size={14} /> Download PDF</>)}
-                  </PDFDownloadLink>
-                )}
+                <PDFDownloadLink
+                  document={<ResumePDF resumeData={resumeData} enhancedData={result} tailoredData={tailorResult} />}
+                  fileName={result ? "optimized_resume.pdf" : "tailored_resume.pdf"}
+                  className="px-8 py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl flex items-center gap-2"
+                >
+                  {({ loading: l }) => (l ? <Loader2 className="animate-spin" size={14} /> : <><Download size={14} /> Download PDF</>)}
+                </PDFDownloadLink>
                 <button 
                   onClick={() => { setResult(null); setTailorResult(null); }}
                   className="px-8 py-3 bg-white/5 text-gray-400 rounded-xl font-black text-[10px] uppercase tracking-widest border border-white/5 hover:text-white hover:bg-white/10 transition-all"

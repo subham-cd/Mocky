@@ -109,13 +109,13 @@ async def enhance_resume_endpoint(data: dict):
        - Action Verbs: Are bullets led by strong verbs (Led, Engineered, Optimized)?
        - Quantified Metrics: Are there numbers, %, or $ to prove impact?
        - Role Keyword Density: Does it use terminology specific to the target role?
-       - Section Completeness: Are summary, skills, and experience robust?
+       - Section Completeness: Are summary, skills, experience, AND projects robust?
        - Narrative Strength: Is the progression logical and compelling?
 
     2. ENHANCEMENT RULES:
        - Rewrite summary to be a "Neural Narrative" that bridges current skills to the target role.
-       - Transform weak bullets (e.g., "worked on React") into impact-driven bullets (e.g., "Architected scalable frontend components using React, reducing load time by ~25%").
-       - Injected relevant role-specific keywords.
+       - Transform weak bullets in BOTH 'experience' and 'projects' (e.g., "worked on React") into impact-driven bullets (e.g., "Architected scalable frontend components using React, reducing load time by ~25%").
+       - Inject relevant role-specific keywords.
        - DO NOT invent companies or degrees, but you MAY extrapolate metrics based on typical industry outcomes.
 
     3. RETURN STRUCTURE:
@@ -128,6 +128,13 @@ async def enhance_resume_endpoint(data: dict):
           {
             "company": "...",
             "role": "...",
+            "original_bullets": ["..."],
+            "enhanced_bullets": ["..."]
+          }
+        ],
+        "projects": [
+          {
+            "name": "...",
             "original_bullets": ["..."],
             "enhanced_bullets": ["..."]
           }
