@@ -278,10 +278,10 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
                 <h3 className="text-sm font-black text-white uppercase mb-6">Select Protocol</h3>
                 <div className="flex flex-col gap-4">
                    <button onClick={() => setInterviewType('solo')} className={`py-4 rounded-2xl border transition-all flex items-center justify-center gap-3 ${interviewType === 'solo' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'}`}>
-                      <User size={18} /> Solo: Sarah Mitchell
+                      <User size={18} /> Solo: Maya Lin
                    </button>
                    <button onClick={() => setInterviewType('panel')} className={`py-4 rounded-2xl border transition-all flex items-center justify-center gap-3 ${interviewType === 'panel' ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'}`}>
-                      <Users size={18} /> Panel: Alex & Sarah
+                      <Users size={18} /> Panel: Rohan & Maya
                    </button>
                 </div>
                 <button onClick={startInterview} disabled={loading} className="w-full mt-8 py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">
@@ -301,12 +301,12 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
                 <div className={`flex flex-col gap-8 transition-all duration-500`}>
                    <div className={`relative ${currentAgent === 'sarah' ? 'opacity-100 scale-100' : 'opacity-40 scale-95 blur-[1px]'}`}>
                       <InterviewerAvatar type="sarah" state={currentAgent === 'sarah' ? avatarState : 'idle'} />
-                      <p className="text-[9px] font-black text-center mt-2 text-white uppercase">Sarah (HR)</p>
+                      <p className="text-[9px] font-black text-center mt-2 text-white uppercase">Maya Lin (HR)</p>
                    </div>
                    {interviewType === 'panel' && (
                      <div className={`relative ${currentAgent === 'alex' ? 'opacity-100 scale-100' : 'opacity-40 scale-95 blur-[1px]'}`}>
                         <InterviewerAvatar type="alex" state={currentAgent === 'alex' ? avatarState : 'idle'} />
-                        <p className="text-[9px] font-black text-center mt-2 text-white uppercase">Alex (Tech Lead)</p>
+                        <p className="text-[9px] font-black text-center mt-2 text-white uppercase">Rohan Menon (Tech Lead)</p>
                      </div>
                    )}
                 </div>
@@ -329,13 +329,13 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
                    <div className="relative group flex-1 flex flex-col">
                       <div className="flex items-center gap-3 mb-6 px-4">
                          <div className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${currentAgent === 'alex' ? 'bg-indigo-600 text-white' : 'bg-blue-600 text-white'}`}>
-                            {currentAgent === 'alex' ? 'Alex Mitchell (Technical)' : 'Sarah Mitchell (HR)'}
+                            {currentAgent === 'alex' ? 'Rohan Menon (Technical)' : 'Maya Lin (HR)'}
                          </div>
                       </div>
                       <div className="relative bg-black/40 p-10 rounded-[2.5rem] border border-white/5 flex-1 flex flex-col justify-center min-h-[300px]">
                          <AnimatePresence mode='wait'>
                             <motion.h2 key={currentQuestion} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-2xl lg:text-3xl font-black text-white tracking-tighter leading-tight italic">
-                               "{currentQuestion || (avatarState === 'thinking' ? `${currentAgent === 'alex' ? 'Alex' : 'Sarah'} is thinking...` : '')}"
+                               "{currentQuestion || (avatarState === 'thinking' ? `${currentAgent === 'alex' ? 'Rohan' : 'Maya'} is thinking...` : '')}"
                             </motion.h2>
                          </AnimatePresence>
                       </div>

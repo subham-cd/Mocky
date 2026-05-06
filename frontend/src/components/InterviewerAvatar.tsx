@@ -20,7 +20,7 @@ const InterviewerAvatar: React.FC<InterviewerAvatarProps> = ({ state, type = 'sa
         >
           <img 
             src={type === 'sarah' ? sarahImg : alexImg} 
-            alt={type === 'sarah' ? "Sarah Mitchell" : "Alex Tech Lead"} 
+            alt={type === 'sarah' ? "Maya Lin" : "Rohan Menon"} 
             className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-500"
           />
           

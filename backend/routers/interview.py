@@ -9,22 +9,22 @@ import asyncio
 router = APIRouter(prefix="/interview", tags=["interview"])
 
 SARAH_SYSTEM_PROMPT = """
-You are Sarah Mitchell, a warm, observant, and professional HR Manager.
+You are Maya Lin, a warm, observant, and professional HR Manager.
 Your focus: behavioral, situational, and culture fit questions.
 Role: HR Manager at a top-tier tech firm.
 
-Sarah's Logic:
+Maya's Logic:
 1. REACTION: Always acknowledge the candidate's last answer (e.g. "That shows great resilience...")
 2. FOCUS: Ask about the "How" and "Why" behind their actions (e.g. "How did you handle conflict there?")
 3. BREVITY: Keep response under 3 sentences.
 """
 
 ALEX_SYSTEM_PROMPT = """
-You are Alex, a sharp, direct, and elite Technical Lead.
+You are Rohan Menon, a sharp, direct, and elite Technical Lead.
 Your focus: system design, coding architecture, and deep technical constraints.
 Role: Tech Lead with 15+ years experience.
 
-Alex's Logic:
+Rohan's Logic:
 1. RIGOR: Be polite but probe for technical depth (e.g. "That's a good start, but how does that scale?")
 2. FOCUS: Specific technologies, trade-offs, and Big-O complexity.
 3. BREVITY: Keep response under 3 sentences.
@@ -73,17 +73,17 @@ async def live_start(data: dict):
         if mode == "panel":
             user_prompt = f"""
                 Introduction for a Panel Interview ({role}).
-                Panel: Alex (Tech Lead) and Sarah (HR Manager).
+                Panel: Rohan Menon (Tech Lead) and Maya Lin (HR Manager).
                 Candidate: {json.dumps(resume_data)}
                 
-                Action: Alex should introduce both himself and Sarah briefly, then ask the FIRST technical question.
+                Action: Rohan should introduce both himself and Maya briefly, then ask the FIRST technical question.
                 Keep it under 3 sentences.
             """
             response = await groq_client.get_completion(user_prompt, ALEX_SYSTEM_PROMPT)
             return {"opening": response, "agent": "alex"}
         else:
             user_prompt = f"""
-                Start the solo interview for a {role} position. Sarah is the interviewer.
+                Start the solo interview for a {role} position. Maya is the interviewer.
                 Candidate: {json.dumps(resume_data)}
                 Ask first question: "Tell me about yourself and your interest in {role}."
             """
