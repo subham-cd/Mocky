@@ -9,25 +9,31 @@ import asyncio
 router = APIRouter(prefix="/interview", tags=["interview"])
 
 SARAH_SYSTEM_PROMPT = """
-You are Maya Lin, a warm, observant, and professional HR Manager.
-Your focus: behavioral, situational, and culture fit questions.
-Role: HR Manager at a top-tier tech firm.
+You are Maya Lin, a warm, observant, and highly professional HR Manager.
+Your goal is to conduct a conversational yet rigorous behavioral interview.
 
-Maya's Logic:
-1. REACTION: Always acknowledge the candidate's last answer (e.g. "That shows great resilience...")
-2. FOCUS: Ask about the "How" and "Why" behind their actions (e.g. "How did you handle conflict there?")
-3. BREVITY: Keep response under 3 sentences.
+Maya's Human Interview Logic:
+1. ADAPTIVE DEPTH: 
+   - Early Session (Turns 0-2): Keep it light. Focus on introductions, career interest, and high-level resume highlights.
+   - Mid Session (Turns 3-5): Probing phase. Ask for specific 'S.T.A.R' examples (Situations, Tasks, Actions, Results) regarding conflict, leadership, and failure.
+   - Late Session (Turns 6+): Culture fit and pressure tests. Ask deep situational curveballs.
+2. REAL-TIME FLEXIBILITY: If the candidate asks you a question or seeks clarification, pivot naturally. Answer them like a real human would, then gently steer back to the interview when appropriate.
+3. REACTION: Never ignore an answer. Acknowledge what they said with professional empathy or insight before moving to your next point.
+4. CONCISION: Keep your responses under 3 sentences. Maintain a professional, executive persona.
 """
 
 ALEX_SYSTEM_PROMPT = """
 You are Rohan Menon, a sharp, direct, and elite Technical Lead.
-Your focus: system design, coding architecture, and deep technical constraints.
-Role: Tech Lead with 15+ years experience.
+Your goal is to assess technical depth, architectural thinking, and problem-solving rigor.
 
-Rohan's Logic:
-1. RIGOR: Be polite but probe for technical depth (e.g. "That's a good start, but how does that scale?")
-2. FOCUS: Specific technologies, trade-offs, and Big-O complexity.
-3. BREVITY: Keep response under 3 sentences.
+Rohan's Human Interview Logic:
+1. PROGRESSIVE RIGOR:
+   - Early Session (Turns 0-2): High-level tech stack and architecture questions based on their resume.
+   - Mid Session (Turns 3-5): Deep dive into trade-offs, scalability, and specific technology constraints.
+   - Late Session (Turns 6+): Elite-level optimization, Big-O complexity, and disaster recovery scenarios.
+2. TECHNICAL FLEXIBILITY: If the candidate asks for technical clarification or asks for your opinion on a tech choice, answer accurately and naturally as an experienced lead before continuing your assessment.
+3. REACTION: Briefly acknowledge the validity or flaws in their previous technical explanation.
+4. CONCISION: Keep your responses under 3 sentences. Stay in character as a busy, high-performing engineer.
 """
 
 @router.post("/generate-questions")
@@ -67,25 +73,25 @@ async def generate_questions_endpoint(data: dict):
 async def live_start(data: dict):
     resume_data = data.get("resume_data")
     role = data.get("target_role")
-    mode = data.get("mode", "solo") # 'solo' or 'panel'
+    mode = data.get("mode", "solo")
     
     try:
         if mode == "panel":
             user_prompt = f"""
-                Introduction for a Panel Interview ({role}).
-                Panel: Rohan Menon (Tech Lead) and Maya Lin (HR Manager).
-                Candidate: {json.dumps(resume_data)}
+                Introduction for a professional Panel Interview for a {role} position.
+                Panelists: Rohan Menon (Tech Lead) and Maya Lin (HR Manager).
+                Candidate Resume Data: {json.dumps(resume_data)}
                 
-                Action: Rohan should introduce both himself and Maya briefly, then ask the FIRST technical question.
-                Keep it under 3 sentences.
+                Action: Rohan should warmly introduce both himself and Maya, set the stage, and ask an introductory technical/role-interest question.
+                Keep it professional and under 3 sentences.
             """
             response = await groq_client.get_completion(user_prompt, ALEX_SYSTEM_PROMPT)
             return {"opening": response, "agent": "alex"}
         else:
             user_prompt = f"""
-                Start the solo interview for a {role} position. Maya is the interviewer.
-                Candidate: {json.dumps(resume_data)}
-                Ask first question: "Tell me about yourself and your interest in {role}."
+                Start a professional interview for a {role} position. You are Maya Lin.
+                Candidate Resume Data: {json.dumps(resume_data)}
+                Ask an introductory question: "Tell me about yourself and what specifically excites you about the {role} role?"
             """
             response = await groq_client.get_completion(user_prompt, SARAH_SYSTEM_PROMPT)
             return {"opening": response, "agent": "sarah"}
@@ -97,12 +103,15 @@ async def panel_turn_stream(data: dict):
     history = data.get("conversation_history", [])
     resume_data = data.get("resume_data")
     role = data.get("target_role")
-    agent = data.get("agent", "alex") # 'alex' or 'sarah'
+    agent = data.get("agent", "alex")
     
-    system_msg = (ALEX_SYSTEM_PROMPT if agent == "alex" else SARAH_SYSTEM_PROMPT) + f"\nRole: {role}\nResume: {json.dumps(resume_data)}"
-    
-    # Clean history to remove unsupported properties like 'agent'
+    # Clean history to remove custom UI properties
     clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
+    turn_count = len(clean_history) // 2
+    
+    context_msg = f"\nTarget Role: {role}\nCurrent turn in interview: {turn_count}.\nCandidate Background: {json.dumps(resume_data)}"
+    system_msg = (ALEX_SYSTEM_PROMPT if agent == "alex" else SARAH_SYSTEM_PROMPT) + context_msg
+    
     messages = [{"role": "system", "content": system_msg}] + clean_history
 
     async def generate():
@@ -130,10 +139,12 @@ async def live_turn_stream(data: dict):
     resume_data = data.get("resume_data")
     role = data.get("target_role")
     
-    system_msg = SARAH_SYSTEM_PROMPT + f"\nRole: {role}\nResume: {json.dumps(resume_data)}"
-    
-    # Clean history to remove unsupported properties like 'agent'
     clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
+    turn_count = len(clean_history) // 2
+    
+    context_msg = f"\nTarget Role: {role}\nCurrent turn in interview: {turn_count}.\nCandidate Background: {json.dumps(resume_data)}"
+    system_msg = SARAH_SYSTEM_PROMPT + context_msg
+    
     messages = [{"role": "system", "content": system_msg}] + clean_history
 
     async def generate():
@@ -161,10 +172,8 @@ async def live_report(data: dict):
     role = data.get("target_role")
     behavioral = data.get("behavioral_metrics", {})
     
-    # Clean history for analysis just in case
     clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
     
-    # Nervousness Index Calculation
     filler_count = behavioral.get("filler_count", 0)
     avg_response_time = behavioral.get("avg_response_time", 0)
     answer_variance = behavioral.get("answer_variance", 0)
@@ -172,22 +181,17 @@ async def live_report(data: dict):
     f_score = min(100, (filler_count / 20) * 100)
     r_score = min(100, (avg_response_time / 10) * 100)
     v_score = min(100, (answer_variance / 200) * 100)
-    
     nervousness_index = int((f_score * 0.4) + (r_score * 0.3) + (v_score * 0.3))
     
-    if nervousness_index < 35:
-        nervousness_label = "Calm"
-    elif nervousness_index < 65:
-        nervousness_label = "Moderate"
-    else:
-        nervousness_label = "Nervous"
+    if nervousness_index < 35: nervousness_label = "Calm"
+    elif nervousness_index < 65: nervousness_label = "Moderate"
+    else: nervousness_label = "Nervous"
 
     system_prompt = "You are an expert interview coach. Analyze this complete interview and return ONLY valid JSON."
     user_prompt = f"""
         Analyze this complete interview for a {role} position.
         Conversation: {json.dumps(clean_history)}
         Behavioral Metrics: {json.dumps(behavioral)}
-        Calculated Nervousness: {nervousness_label} ({nervousness_index}/100)
         
         Return ONLY this JSON structure:
         {{
@@ -214,7 +218,6 @@ async def live_report(data: dict):
     try:
         raw_json = await groq_client.get_json_completion(user_prompt, system_prompt)
         parsed = safe_parse_groq_json(raw_json)
-        # Ensure calculated metrics are in final response
         parsed["nervousness_index"] = nervousness_index
         parsed["nervousness_label"] = nervousness_label
         return parsed
