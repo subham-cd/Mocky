@@ -10,6 +10,7 @@ import GitHubAnalyzer from './components/GitHubAnalyzer';
 import CoverLetterGenerator from './components/CoverLetter';
 import SalaryEstimator from './components/SalaryEstimator';
 import InterviewDebrief from './components/InterviewDebrief';
+import GlobalChat from './components/GlobalChat';
 
 import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, Terminal, Zap, Map } from 'lucide-react';
 import axios from 'axios';
@@ -288,6 +289,7 @@ function App() {
           </div>
         </main>
       </div>
+      <GlobalChat />
     </div>
   );
 }
