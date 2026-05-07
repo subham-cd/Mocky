@@ -1,10 +1,18 @@
 import React from 'react';
-import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks, Zap, Info, Target, Sparkles } from 'lucide-react';
+import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks, Zap, Info, Target, Sparkles, Cpu, Layers } from 'lucide-react';
 
 interface ScoreCardProps {
   data: {
-    ats_score: number; keyword_match_percent: number; matched_keywords: string[]; missing_keywords: string[]; section_scores: Record<string, number>; critical_fixes: string[]; format_issues?: string[];
+    ats_score: number;
+    keyword_match_percent: number;
+    matched_keywords: string[];
+    missing_keywords: string[];
+    section_scores: Record<string, number>;
+    critical_fixes: string[];
+    format_issues?: string[];
     isSimulation?: boolean;
+    ml_score?: number;
+    llm_score?: number;
   };
 }
 
@@ -71,7 +79,7 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20">
       {/* Primary Score Banner */}
       <div className="glass-card p-12 rounded-[3rem] relative overflow-hidden group">
         <div className="flex flex-col md:flex-row items-center justify-between gap-10">
@@ -90,6 +98,49 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
              <p className="text-xs text-gray-500 leading-relaxed">Your profile was parsed and compared against <span className="text-white font-bold">14,000+</span> industry data points.</p>
           </div>
         </div>
+      </div>
+
+      {/* Hybrid Neural-ML Scoring Engine Widget */}
+      <div className="glass-card p-10 rounded-[3rem] border-blue-500/20 bg-blue-500/5">
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+            <div>
+               <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                  <Layers className="text-blue-400" /> Hybrid Neural-ML Scoring Engine
+               </h3>
+               <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Cross-referencing mathematical vectors with semantic intelligence</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+               {['scikit-learn', 'Groq', 'Llama 3.3-70B'].map(tech => (
+                  <span key={tech} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-widest">{tech}</span>
+               ))}
+            </div>
+         </div>
+
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 bg-black/40 rounded-[2rem] border border-white/5 space-y-4 group hover:border-blue-500/30 transition-all">
+               <div className="flex justify-between items-center">
+                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em]">ML Analysis (TF-IDF)</span>
+                  <Cpu size={14} className="text-blue-500" />
+               </div>
+               <div className="text-4xl font-black text-white">{data.ml_score || data.keyword_match_percent || 0}%</div>
+               <p className="text-[10px] text-gray-500 font-medium">Deterministic mathematical keyword match density.</p>
+               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500" style={{ width: `${data.ml_score || data.keyword_match_percent || 0}%` }} />
+               </div>
+            </div>
+
+            <div className="p-6 bg-black/40 rounded-[2rem] border border-white/5 space-y-4 group hover:border-purple-500/30 transition-all">
+               <div className="flex justify-between items-center">
+                  <span className="text-[9px] font-black text-purple-500 uppercase tracking-[0.2em]">AI Analysis (LLM)</span>
+                  <Sparkles size={14} className="text-purple-500" />
+               </div>
+               <div className="text-4xl font-black text-white">{data.llm_score || 0}%</div>
+               <p className="text-[10px] text-gray-500 font-medium">Probabilistic qualitative semantic & context score.</p>
+               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500" style={{ width: `${data.llm_score || 0}%` }} />
+               </div>
+            </div>
+         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
