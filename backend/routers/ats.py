@@ -15,31 +15,33 @@ async def score_ats_endpoint(data: dict):
     if not resume_text or not jd_text:
         raise HTTPException(status_code=400, detail="Both resume text and job description are required")
         
-    # 1. Quantitative Match (ML: TF-IDF Vectorization)
-    tf_idf_results = calculate_keyword_overlap(resume_text, jd_text)
-    ml_score = tf_idf_results.get("match_percentage", 0)
-    
-    # 2. Qualitative Match (DL: Llama 3.3 Large Language Model)
-    system_prompt = """
-    You are an ATS (Applicant Tracking System) forensic analyst.
-    Evaluate the resume against the job description for qualitative alignment.
-    
-    Return ONLY a JSON object with:
-    {
-      "qualitative_score": <0-100 score based on context, semantics, and seniority match>,
-      "matched_keywords": [...],
-      "missing_keywords": [...],
-      "section_scores": {
-        "summary": <0-20>, "experience": <0-30>,
-        "skills": <0-25>, "education": <0-15>, "projects": <0-10>
-      },
-      "critical_fixes": ["fix1", "fix2"],
-      "format_issues": [...]
-    }
-    """
-    user_prompt = f"Resume:\n{resume_text}\n\nJob Description:\n{jd_text}\nML Math Score: {ml_score}%"
-    
     try:
+        # 1. Quantitative Match (ML: TF-IDF Vectorization)
+        print(f"ATS: Running TF-IDF calculation for role context...")
+        tf_idf_results = calculate_keyword_overlap(resume_text, jd_text)
+        ml_score = tf_idf_results.get("match_percentage", 0)
+        
+        # 2. Qualitative Match (DL: Llama 3.3 Large Language Model)
+        print(f"ATS: Calling Groq for qualitative analysis (ML Score: {ml_score})...")
+        system_prompt = """
+        You are an ATS (Applicant Tracking System) forensic analyst.
+        Evaluate the resume against the job description for qualitative alignment.
+        
+        Return ONLY a JSON object with:
+        {
+          "qualitative_score": <0-100 score based on context, semantics, and seniority match>,
+          "matched_keywords": [...],
+          "missing_keywords": [...],
+          "section_scores": {
+            "summary": <0-20>, "experience": <0-30>,
+            "skills": <0-25>, "education": <0-15>, "projects": <0-10>
+          },
+          "critical_fixes": ["fix1", "fix2"],
+          "format_issues": [...]
+        }
+        """
+        user_prompt = f"Resume:\n{resume_text}\n\nJob Description:\n{jd_text}\nML Math Score: {ml_score}%"
+        
         raw_json = await groq_client.get_json_completion(user_prompt, system_prompt)
         groq_results = safe_parse_groq_json(raw_json)
         
@@ -54,6 +56,8 @@ async def score_ats_endpoint(data: dict):
         groq_results["ml_score"] = ml_score
         groq_results["llm_score"] = qualitative_score
         
+        print(f"ATS: Synthesis complete. Final Score: {final_ats_score}")
         return groq_results
     except Exception as e:
+        print(f"ATS SYSTEM ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
