@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
-import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp, Activity } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, RefreshCcw, LayoutDashboard, Award, Zap, TrendingUp, Activity, Download, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import SessionPDF from './SessionPDF';
+import { useCareerStore } from '../store/useCareerStore';
 
 interface InterviewDebriefProps {
   report: any;
@@ -11,6 +15,11 @@ interface InterviewDebriefProps {
 const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart, onDashboard }) => {
   const [displayScore, setDisplayScore] = useState(0);
   const [openQ, setOpenQ] = useState<number | null>(null);
+  const navigate = useNavigate();
+  const { sessions, resumeData } = useCareerStore();
+  
+  // Get the most recent session (which is the one we just completed)
+  const currentSession = sessions[0];
   
   useEffect(() => {
     let current = 0;
@@ -59,6 +68,19 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart, 
               <span className="absolute text-8xl font-black text-white">{displayScore}</span>
            </div>
            <p className="text-xl font-bold text-gray-300 italic">"{report.summary}"</p>
+           
+           {/* DOWNLOAD TRANSCRIPT BUTTON */}
+           <div className="mt-12 flex justify-center">
+              {currentSession && (
+                <PDFDownloadLink
+                  document={<SessionPDF session={currentSession} userName={resumeData?.name || 'Professional'} />}
+                  fileName={`Interview_Session_${currentSession.date}.pdf`}
+                  className="px-8 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 transition-all shadow-2xl flex items-center gap-3 border border-blue-400/20"
+                >
+                  {({ loading: l }) => (l ? <Loader2 className="animate-spin" size={14} /> : <><Download size={14} /> Download Full Transcript</>)}
+                </PDFDownloadLink>
+              )}
+           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

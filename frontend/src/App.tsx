@@ -12,8 +12,9 @@ import SalaryEstimator from './components/SalaryEstimator';
 import InterviewDebrief from './components/InterviewDebrief';
 import GlobalChat from './components/GlobalChat';
 import MasterReport from './components/MasterReport';
+import SessionHistory from './components/SessionHistory';
 
-import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, Terminal, Zap, Map, FileText } from 'lucide-react';
+import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, Terminal, Zap, Map, FileText, History } from 'lucide-react';
 import axios from 'axios';
 import { useCareerStore } from './store/useCareerStore';
 import CodingLab from './components/CodingLab';
@@ -82,14 +83,7 @@ function App() {
 
   const handleInterviewComplete = (report: any) => {
     setInterviewReport(report);
-    saveSession({
-      type: 'interview',
-      interview_score: report.overall_score,
-      radar_scores: report.dimension_scores,
-      full_report: report,
-      strengths: report.strengths,
-      gaps: report.optimization_gaps
-    });
+    // Note: saveSession is now handled inside finalizeInterview in LiveInterviewRoom for detailed data
     setShowDebrief(true);
   };
 
@@ -102,6 +96,7 @@ function App() {
     { id: 'github', path: '/github', icon: <GitBranch size={18} />, label: 'GitHub Audit' },
     { id: 'cover', path: '/cover', icon: <Mail size={18} />, label: 'Cover Letter' },
     { id: 'roadmap', path: '/roadmap', icon: <Map size={18} />, label: 'Career Roadmap' },
+    { id: 'history', path: '/sessions', icon: <History size={18} />, label: 'Session Archive' },
   ];
 
   return (
@@ -284,6 +279,7 @@ function App() {
               <Route path="/cover" element={isSessionActive ? <CoverLetterGenerator /> : <Navigate to="/" replace />} />
               <Route path="/roadmap" element={isSessionActive ? <CareerRoadmap /> : <Navigate to="/" replace />} />
               <Route path="/report" element={isSessionActive ? <MasterReport /> : <Navigate to="/" replace />} />
+              <Route path="/sessions" element={isSessionActive ? <SessionHistory /> : <Navigate to="/" replace />} />
               
               {/* Catch-all */}
               <Route path="*" element={<Navigate to="/" replace />} />

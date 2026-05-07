@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Send, Zap, Loader2, Info, Mic, Pause, Square, MicOff, Activity, Gauge, Users, User } from 'lucide-react';
+import { Play, Send, Zap, Loader2, Info, Mic, Pause, Square, MicOff, Activity, Gauge, Users, User, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 import InterviewerAvatar from './InterviewerAvatar';
 import { SpeechToText } from '../utils/speechApi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCareerStore } from '../store/useCareerStore';
 
 interface LiveInterviewRoomProps {
   resumeData: any;
@@ -15,6 +16,8 @@ const FILLER_WORDS = ['um', 'uh', 'like', 'you know', 'basically', 'so', 'actual
 
 const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targetRole, onInterviewComplete }) => {
   const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
+  const { saveSession } = useCareerStore();
+  
   const [interviewType, setInterviewType] = useState<'solo' | 'panel'>('solo');
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState("");
@@ -25,11 +28,14 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   const [loading, setLoading] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [interimTranscript, setInterimTranscript] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  // SESSION RECORDING STATE
   const questionCount = useRef(0);
-  const startTime = useRef<number | null>(null);
+  const sessionStartTime = useRef<string | null>(null);
   const turnStartTime = useRef<number | null>(null);
-  const answerLengths = useRef<number[]>([]);
-  const responseTimes = useRef<number[]>([]);
+  const qaHistory = useRef<any[]>([]);
+  const totalFillers = useRef(0);
   
   // Emotion & Confidence State
   const [metrics, setMetrics] = useState({
@@ -48,24 +54,21 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     const words = fullText.split(/\s+/).filter(w => w.length > 0);
     const fillers = words.filter(w => FILLER_WORDS.includes(w)).length;
 
+    totalFillers.current = fillers;
+
     let currentWpm = 0;
-    if (startTime.current && interviewStarted && words.length > 5) {
-        const elapsedMinutes = (Date.now() - startTime.current) / 60000;
+    if (turnStartTime.current && interviewStarted && words.length > 5) {
+        const elapsedMinutes = (Date.now() - turnStartTime.current) / 60000;
         currentWpm = Math.round(words.length / elapsedMinutes);
     }
 
     let conf = 85;
     if (fillers > 5) conf -= (fillers * 2);
-    if (currentWpm > 0) {
-        if (currentWpm < 100) conf -= 10;
-        if (currentWpm > 170) conf -= 15;
-    }
     
     const sentences = fullText.split(/[.!?]+/).filter(s => s.trim().length > 0);
     const avgSentenceLength = sentences.length > 0 ? words.length / sentences.length : 0;
     let clar = 75;
     if (avgSentenceLength > 10 && avgSentenceLength < 25) clar += 15;
-    if (fillers > 3) clar -= 10;
 
     setMetrics({
         confidence: Math.max(10, Math.min(100, conf)),
@@ -102,15 +105,13 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     const alexVoice = voices.find(v => v.name.includes('Google UK English') || v.name.includes('Male')) || voices[1] || voices[0];
     
     utterance.voice = agent === 'sarah' ? sarahVoice : alexVoice;
-    utterance.pitch = agent === 'sarah' ? 1.0 : 0.8;
 
     setAvatarState("speaking");
     utterance.onend = () => {
       if (!isPaused) {
         setAvatarState("listening");
         speechApiRef.current?.start();
-        if (!startTime.current) startTime.current = Date.now();
-        turnStartTime.current = Date.now(); // Start timing candidate's turn
+        turnStartTime.current = Date.now(); 
       } else {
         setAvatarState("idle");
       }
@@ -176,30 +177,46 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     setLoading(true);
     setAvatarState("thinking");
 
-    // Calculate aggregated behavioral metrics
-    const avgResponseTime = responseTimes.current.length > 0 
-      ? responseTimes.current.reduce((a, b) => a + b, 0) / responseTimes.current.length 
+    const endTime = new Date().toISOString();
+    const duration = sessionStartTime.current 
+      ? Math.round((Date.now() - new Date(sessionStartTime.current).getTime()) / 60000) 
       : 0;
-    
-    const meanLength = answerLengths.current.length > 0 
-      ? answerLengths.current.reduce((a, b) => a + b, 0) / answerLengths.current.length 
-      : 0;
-    
-    const variance = answerLengths.current.length > 0
-      ? answerLengths.current.reduce((a, b) => a + Math.pow(b - meanLength, 2), 0) / answerLengths.current.length
-      : 0;
+
+    // Calculate detailed behavioral metrics
+    const meanResponseTime = qaHistory.current.reduce((a, b) => a + b.response_time_seconds, 0) / (qaHistory.current.length || 1);
+    const variance = qaHistory.current.reduce((a, b) => a + Math.pow(b.answer_transcript.split(' ').length - 20, 2), 0) / (qaHistory.current.length || 1);
 
     try {
       const res = await axios.post(`${API_BASE_URL}/interview/live-report`, {
         conversation_history: conversationHistory,
         target_role: targetRole,
         behavioral_metrics: {
-          filler_count: metrics.fillerCount,
-          avg_response_time: avgResponseTime,
+          filler_count: totalFillers.current,
+          avg_response_time: meanResponseTime,
           answer_variance: Math.sqrt(variance)
         }
       });
-      onInterviewComplete(res.data);
+
+      saveSession({
+        type: 'interview',
+        interview_mode: interviewType,
+        start_time: sessionStartTime.current || new Date().toISOString(),
+        end_time: endTime,
+        duration_minutes: duration,
+        questions_and_answers: qaHistory.current,
+        filler_words_total: totalFillers.current,
+        interview_score: res.data.overall_score,
+        composite_grade: res.data.composite_grade,
+        radar_scores: res.data.dimension_scores,
+        full_report: res.data
+      });
+
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+        onInterviewComplete(res.data);
+      }, 2000);
+
     } catch (err) {
       setAvatarState("idle");
     } finally {
@@ -211,11 +228,34 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     const fullAnswer = (transcript + ' ' + interimTranscript).trim();
     if (!fullAnswer || isPaused) return;
 
-    // Track metrics for this turn
-    if (turnStartTime.current) {
-        responseTimes.current.push((Date.now() - turnStartTime.current) / 1000);
-    }
-    answerLengths.current.push(fullAnswer.split(/\s+/).length);
+    const responseTime = turnStartTime.current ? (Date.now() - turnStartTime.current) / 1000 : 0;
+    
+    // Create new entry for this turn
+    const turnEntry = {
+        question: currentQuestion,
+        answer_transcript: fullAnswer,
+        response_time_seconds: Math.round(responseTime),
+        scores: { relevance: 0, clarity: 0, technical: 0 },
+        ai_feedback: "Neural review pending..."
+    };
+    qaHistory.current.push(turnEntry);
+
+    // CHUNK 2: Secret Background Evaluation
+    const evaluateAnswer = async () => {
+        try {
+            const evalRes = await axios.post(`${API_BASE_URL}/interview/evaluate`, {
+                question: turnEntry.question,
+                answer: turnEntry.answer_transcript,
+                what_we_look_for: "General competency and architectural depth."
+            });
+            // Update the reference with real scores
+            turnEntry.scores = evalRes.data.scores;
+            turnEntry.ai_feedback = evalRes.data.feedback;
+        } catch (e) {
+            console.error("Neural background eval failed", e);
+        }
+    };
+    evaluateAnswer(); // Fire and forget (it will update the ref)
 
     speechApiRef.current?.stop();
     const updatedHistory = [...conversationHistory, { role: "user", content: fullAnswer }];
@@ -229,6 +269,8 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
   const startInterview = async () => {
     setLoading(true);
     setAvatarState("thinking");
+    sessionStartTime.current = new Date().toISOString();
+    
     try {
       const res = await axios.post(`${API_BASE_URL}/interview/live-start`, {
         resume_data: resumeData,
@@ -263,6 +305,21 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
 
   return (
     <div className="max-w-[1600px] mx-auto animate-in fade-in duration-1000 pb-20 px-4 md:px-0">
+      
+      {/* Recording Notification Toast */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 20 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-0 left-1/2 -translate-x-1/2 z-[300] bg-green-500 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest shadow-2xl flex items-center gap-4"
+          >
+            <CheckCircle2 size={20} /> Session Recorded ✓
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {loading && avatarState === 'thinking' && !interviewStarted && (
         <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center">
             <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-6" />
