@@ -11,8 +11,9 @@ import CoverLetterGenerator from './components/CoverLetter';
 import SalaryEstimator from './components/SalaryEstimator';
 import InterviewDebrief from './components/InterviewDebrief';
 import GlobalChat from './components/GlobalChat';
+import MasterReport from './components/MasterReport';
 
-import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, Terminal, Zap, Map } from 'lucide-react';
+import { Brain, Target, LayoutDashboard, Activity, Sparkles, GitBranch, Mail, Terminal, Zap, Map, FileText } from 'lucide-react';
 import axios from 'axios';
 import { useCareerStore } from './store/useCareerStore';
 import CodingLab from './components/CodingLab';
@@ -282,6 +283,7 @@ function App() {
               <Route path="/github" element={isSessionActive ? <GitHubAnalyzer /> : <Navigate to="/" replace />} />
               <Route path="/cover" element={isSessionActive ? <CoverLetterGenerator /> : <Navigate to="/" replace />} />
               <Route path="/roadmap" element={isSessionActive ? <CareerRoadmap /> : <Navigate to="/" replace />} />
+              <Route path="/report" element={isSessionActive ? <MasterReport /> : <Navigate to="/" replace />} />
               
               {/* Catch-all */}
               <Route path="*" element={<Navigate to="/" replace />} />

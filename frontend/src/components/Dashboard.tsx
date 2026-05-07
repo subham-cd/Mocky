@@ -3,7 +3,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid, CheckCircle2, AlertCircle, HelpCircle, Trash2, X, ShieldCheck, Terminal, UserCheck } from 'lucide-react';
+import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid, CheckCircle2, AlertCircle, HelpCircle, Trash2, X, ShieldCheck, Terminal, FileText } from 'lucide-react';
 import { useCareerStore } from '../store/useCareerStore';
 import { useHydration } from '../hooks/useHydration';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -164,14 +164,25 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                {isGuest ? "System in Simulation Mode. Data accuracy restricted." : "Real-time analysis of your professional trajectory."}
             </p>
          </div>
-         <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/10 group hover:border-blue-500/50 transition-all shrink-0">
-            <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mr-2">Targeting</div>
-            <select value={targetRole} onChange={e => setTargetRole(e.target.value)} className="bg-transparent border-none p-0 text-sm font-black text-white cursor-pointer focus:ring-0">
-              <option className="bg-gray-900">Software Engineer</option>
-              <option className="bg-gray-900">Data Analyst</option>
-              <option className="bg-gray-900">Product Manager</option>
-              <option className="bg-gray-900">DevOps Engineer</option>
-            </select>
+         <div className="flex items-center gap-4">
+            {!isGuest && (
+              <button 
+                onClick={() => onNavigate('report')}
+                className="px-6 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all shadow-xl flex items-center gap-3 group"
+              >
+                <FileText size={16} className="group-hover:rotate-12 transition-transform" />
+                Master Report
+              </button>
+            )}
+            <div className="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/10 group hover:border-blue-500/50 transition-all shrink-0">
+               <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mr-2">Targeting</div>
+               <select value={targetRole} onChange={e => setTargetRole(e.target.value)} className="bg-transparent border-none p-0 text-sm font-black text-white cursor-pointer focus:ring-0">
+                 <option className="bg-gray-900">Software Engineer</option>
+                 <option className="bg-gray-900">Data Analyst</option>
+                 <option className="bg-gray-900">Product Manager</option>
+                 <option className="bg-gray-900">DevOps Engineer</option>
+               </select>
+            </div>
          </div>
       </div>
 
