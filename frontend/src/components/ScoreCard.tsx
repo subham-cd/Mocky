@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, AlertTriangle, X, ShieldAlert, Award, ListChecks, Zap, Info, Target, Sparkles, Cpu, Layers } from 'lucide-react';
+import ModuleFeedback from './ModuleFeedback';
 
 interface ScoreCardProps {
   data: {
@@ -17,6 +18,8 @@ interface ScoreCardProps {
 }
 
 const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
+  const [showFeedback, setShowFeedback] = useState(true);
+  
   const getGrade = (score: number) => {
     if (score >= 85) return { grade: "A", color: "text-green-400", bg: "bg-green-400" };
     if (score >= 70) return { grade: "B+", color: "text-blue-400", bg: "bg-blue-400" };
@@ -27,7 +30,7 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
 
   if (data.isSimulation) {
     return (
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20">
         {/* Simulation Header */}
         <div className="glass-card p-10 rounded-[3rem] border-white/10 relative overflow-hidden group bg-gradient-to-br from-yellow-500/5 to-transparent">
           <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500/30"></div>
@@ -74,6 +77,12 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
              "To excel in this domain, focus your training on <span className="text-blue-400 font-black">{data.missing_keywords?.[0] || 'core technologies'}</span> {data.missing_keywords?.[1] ? <>and architectural patterns related to <span className="text-blue-400 font-black">{data.missing_keywords[1]}</span></> : ''}."
            </p>
         </div>
+
+        {showFeedback && (
+           <div className="flex justify-center">
+              <ModuleFeedback module="ATS Engine (Sim)" onClose={() => setShowFeedback(false)} />
+           </div>
+        )}
       </div>
     );
   }
@@ -201,6 +210,12 @@ const ScoreCard: React.FC<ScoreCardProps> = ({ data }) => {
            </div>
         </div>
       </div>
+
+      {showFeedback && (
+         <div className="flex justify-center mt-12">
+            <ModuleFeedback module="ATS Engine" onClose={() => setShowFeedback(false)} />
+         </div>
+      )}
     </div>
   );
 };

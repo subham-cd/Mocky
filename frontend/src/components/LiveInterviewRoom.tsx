@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Send, Zap, Loader2, Info, Mic, Pause, Square, MicOff, Activity, Gauge, Users, User, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Play, Send, Zap, Loader2, Info, Mic, Pause, Square, MicOff, Activity, Gauge, Users, User, CheckCircle2, Smile, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import InterviewerAvatar from './InterviewerAvatar';
 import { SpeechToText } from '../utils/speechApi';
@@ -13,6 +13,9 @@ interface LiveInterviewRoomProps {
 }
 
 const FILLER_WORDS = ['um', 'uh', 'like', 'you know', 'basically', 'so', 'actually', 'literally', 'I mean'];
+const POSITIVE_SIGNALS = ['achieved', 'led', 'improved', 'successfully', 'delivered', 'built', 'increased', 'resolved', 'optimized', 'launched'];
+const NEGATIVE_SIGNALS = ['failed', 'couldn\'t', 'tried', 'unfortunately', 'struggled', 'bad', 'hard', 'never', 'issue', 'error'];
+const TENTATIVE_SIGNALS = ['maybe', 'i think', 'probably', 'i guess', 'might', 'sort of', 'kind of'];
 
 const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targetRole, onInterviewComplete }) => {
   const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
@@ -43,12 +46,13 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     clarity: 80,
     pace: 50,
     fillerCount: 0,
-    wpm: 0
+    wpm: 0,
+    positivity: 50
   });
 
   const speechApiRef = useRef<SpeechToText | null>(null);
 
-  // Analyze Speech Metrics
+  // Analyze Speech Metrics (REAL-TIME SENTIMENT ANALYSIS)
   useEffect(() => {
     const fullText = (transcript + ' ' + interimTranscript).toLowerCase();
     const words = fullText.split(/\s+/).filter(w => w.length > 0);
@@ -62,7 +66,16 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
         currentWpm = Math.round(words.length / elapsedMinutes);
     }
 
-    let conf = 85;
+    // Sentiment Logic (Part B)
+    let posCount = words.filter(w => POSITIVE_SIGNALS.includes(w)).length;
+    let negCount = words.filter(w => NEGATIVE_SIGNALS.includes(w)).length;
+    let tentativeCount = 0;
+    TENTATIVE_SIGNALS.forEach(sig => {
+       if (fullText.includes(sig)) tentativeCount++;
+    });
+
+    let positivityScore = 50 + (posCount * 15) - (negCount * 15);
+    let conf = 85 - (tentativeCount * 10); // Tentative signals heavily lower confidence
     if (fillers > 5) conf -= (fillers * 2);
     
     const sentences = fullText.split(/[.!?]+/).filter(s => s.trim().length > 0);
@@ -75,7 +88,8 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
         clarity: Math.max(10, Math.min(100, clar)),
         pace: Math.max(10, Math.min(100, (currentWpm / 150) * 50)),
         fillerCount: fillers,
-        wpm: currentWpm
+        wpm: currentWpm,
+        positivity: Math.max(10, Math.min(100, positivityScore))
     });
   }, [transcript, interimTranscript, interviewStarted]);
 
@@ -182,7 +196,6 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
       ? Math.round((Date.now() - new Date(sessionStartTime.current).getTime()) / 60000) 
       : 0;
 
-    // Calculate detailed behavioral metrics
     const meanResponseTime = qaHistory.current.reduce((a, b) => a + b.response_time_seconds, 0) / (qaHistory.current.length || 1);
     const variance = qaHistory.current.reduce((a, b) => a + Math.pow(b.answer_transcript.split(' ').length - 20, 2), 0) / (qaHistory.current.length || 1);
 
@@ -193,7 +206,8 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
         behavioral_metrics: {
           filler_count: totalFillers.current,
           avg_response_time: meanResponseTime,
-          answer_variance: Math.sqrt(variance)
+          answer_variance: Math.sqrt(variance),
+          sentiment_score: metrics.positivity
         }
       });
 
@@ -230,7 +244,6 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
 
     const responseTime = turnStartTime.current ? (Date.now() - turnStartTime.current) / 1000 : 0;
     
-    // Create new entry for this turn
     const turnEntry = {
         question: currentQuestion,
         answer_transcript: fullAnswer,
@@ -240,7 +253,6 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
     };
     qaHistory.current.push(turnEntry);
 
-    // CHUNK 2: Secret Background Evaluation
     const evaluateAnswer = async () => {
         try {
             const evalRes = await axios.post(`${API_BASE_URL}/interview/evaluate`, {
@@ -248,14 +260,13 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
                 answer: turnEntry.answer_transcript,
                 what_we_look_for: "General competency and architectural depth."
             });
-            // Update the reference with real scores
             turnEntry.scores = evalRes.data.scores;
             turnEntry.ai_feedback = evalRes.data.feedback;
         } catch (e) {
             console.error("Neural background eval failed", e);
         }
     };
-    evaluateAnswer(); // Fire and forget (it will update the ref)
+    evaluateAnswer(); 
 
     speechApiRef.current?.stop();
     const updatedHistory = [...conversationHistory, { role: "user", content: fullAnswer }];
@@ -433,12 +444,26 @@ const LiveInterviewRoom: React.FC<LiveInterviewRoomProps> = ({ resumeData, targe
            <div className="glass-card p-8 rounded-[2.5rem] bg-black/20 border-white/10 h-full flex flex-col space-y-8">
               <div className="flex items-center gap-3"><Activity className="text-blue-500" size={18} /><h3 className="text-xs font-black text-white uppercase tracking-widest">Neural Pulse</h3></div>
               <div className="space-y-8 flex-1">
-                 {[{ label: 'Confidence', val: metrics.confidence, color: 'green' }, { label: 'Clarity', val: metrics.clarity, color: 'blue' }, { label: 'Pace', val: Math.min(100, (metrics.wpm/180)*100), color: 'purple' }].map(m => (
+                 {/* SENTIMENT ANALYSIS UI */}
+                 <div className="space-y-3">
+                    <div className="flex justify-between items-center text-[8px] font-black uppercase text-gray-500">
+                       <span>Answer Sentiment</span>
+                       <span className={metrics.positivity > 60 ? 'text-green-500' : 'text-blue-400'}>
+                          {metrics.positivity > 70 ? 'Positive' : metrics.positivity > 40 ? 'Neutral' : 'Negative'}
+                       </span>
+                    </div>
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                       <motion.div animate={{ width: `${metrics.positivity}%` }} className={`h-full ${metrics.positivity > 60 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'}`} />
+                    </div>
+                 </div>
+
+                 {[{ label: 'Confidence', val: metrics.confidence, color: 'green' }, { label: 'Clarity', val: metrics.clarity, color: 'indigo' }, { label: 'Pace', val: Math.min(100, (metrics.wpm/180)*100), color: 'purple' }].map(m => (
                    <div key={m.label} className="space-y-3">
                       <div className="flex justify-between items-center text-[8px] font-black uppercase text-gray-500"><span>{m.label}</span><span className={`text-white`}>{m.label === 'Pace' ? metrics.wpm + ' WPM' : m.val + '%'}</span></div>
                       <div className="h-1.5 bg-white/5 rounded-full overflow-hidden"><motion.div animate={{ width: `${m.val}%` }} className={`h-full bg-${m.color}-500 shadow-[0_0_10px_rgba(0,0,0,0.5)]`} /></div>
                    </div>
                  ))}
+                 
                  <div className="glass p-6 rounded-2xl text-center space-y-1">
                     <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Fillers</p>
                     <AnimatePresence mode='wait'><motion.p key={metrics.fillerCount} initial={{ scale: 1.5 }} animate={{ scale: 1 }} className="text-4xl font-black text-white">{metrics.fillerCount}</motion.p></AnimatePresence>

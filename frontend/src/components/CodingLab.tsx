@@ -3,6 +3,7 @@ import { Terminal, Play, Loader2, CheckCircle2, AlertTriangle, Code, Cpu, Zap, S
 import axios from 'axios';
 import { useCareerStore } from '../store/useCareerStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import ModuleFeedback from './ModuleFeedback';
 
 interface CodingLabProps {
   role: string;
@@ -24,9 +25,11 @@ const CodingLab: React.FC<CodingLabProps> = ({ role }) => {
   const [category, setCategory] = useState('Data Structures & Algorithms');
   const [code, setCode] = useState('');
   const [evaluation, setEvaluation] = useState<any>(null);
+  const [showFeedback, setShowFeedback] = useState(true);
 
   const generateChallenge = async () => {
     setStatus('loading');
+    setShowFeedback(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/coding/generate`, { 
         role, 
@@ -117,7 +120,7 @@ const CodingLab: React.FC<CodingLabProps> = ({ role }) => {
            <div className="absolute inset-0 border-8 border-blue-500/10 rounded-full"></div>
            <div className="absolute inset-0 border-8 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
            <div className="absolute inset-0 flex items-center justify-center">
-              <Cpu size={48} className="text-blue-500 animate-pulse" />
+              <Chip size={48} className="text-blue-500 animate-pulse" />
            </div>
         </div>
         <h2 className="text-2xl font-black text-white uppercase tracking-[0.3em] animate-pulse">
@@ -250,6 +253,12 @@ const CodingLab: React.FC<CodingLabProps> = ({ role }) => {
                      </pre>
                   </div>
                </div>
+               
+               {showFeedback && (
+                  <div className="flex justify-center">
+                    <ModuleFeedback module="Neural Coding Lab" onClose={() => setShowFeedback(false)} />
+                  </div>
+               )}
             </div>
 
             <div className="lg:col-span-4 space-y-8">

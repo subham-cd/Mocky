@@ -3,7 +3,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid, CheckCircle2, AlertCircle, HelpCircle, Trash2, X, ShieldCheck, Terminal, FileText } from 'lucide-react';
+import { Activity, Target, Zap, Clock, ExternalLink, TrendingUp, ChevronRight, Info, Brain, Sparkles, LayoutGrid, CheckCircle2, AlertCircle, HelpCircle, Trash2, X, ShieldCheck, Terminal, FileText, UserCheck, Star } from 'lucide-react';
 import { useCareerStore } from '../store/useCareerStore';
 import { useHydration } from '../hooks/useHydration';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,6 +24,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const [skillMatrix, setSkillMatrix] = useState<any[]>([]);
   const [loadingMatrix, setLoadingMatrix] = useState(false);
   const [showReadinessDetail, setShowReadinessModal] = useState(false);
+  const [moduleRatings, setModuleRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchMatrix = async () => {
@@ -42,8 +43,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       }
     };
 
-    if (hydrated && resumeData) {
-      fetchMatrix();
+    const fetchStats = async () => {
+       try {
+          const res = await axios.get(`${API_BASE_URL}/feedback/stats`);
+          setModuleRatings(res.data.avg_ratings || {});
+       } catch (err) {
+          console.error("Stats Error:", err);
+       }
+    };
+
+    if (hydrated) {
+      fetchStats();
+      if (resumeData) fetchMatrix();
     }
   }, [resumeData, targetRole, hydrated]);
 
@@ -83,6 +94,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       case 'gap': return { color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/30' };
       default: return { color: 'text-gray-500', bg: 'bg-white/5', border: 'border-white/5' };
     }
+  };
+
+  const renderStars = (rating: number = 0) => {
+    return (
+      <div className="flex gap-1 items-center">
+         {[1, 2, 3, 4].map(i => (
+           <Star key={i} size={10} className={i <= Math.round(rating) ? 'fill-yellow-500 text-yellow-500' : 'text-gray-700'} />
+         ))}
+         <span className="text-[8px] font-black text-gray-500 ml-1">{rating || '0.0'}</span>
+      </div>
+    );
   };
 
   return (
@@ -234,7 +256,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   {isGuest ? "Baseline Potential" : (healthScore >= 75 ? "Market Ready 🚀" : healthScore >= 50 ? "Competitive ⚡" : "Needs Optimization 🔧")}
                </p>
                
-               {/* Quick stats on card */}
                <div className="flex gap-2 justify-center">
                   <div className={`h-1 flex-1 rounded-full ${subScores.interview > 0 ? 'bg-purple-500' : 'bg-white/5'}`} />
                   <div className={`h-1 flex-1 rounded-full ${subScores.ats > 0 ? 'bg-blue-500' : 'bg-white/5'}`} />
@@ -247,10 +268,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
          {/* ATS Insights */}
          <div className="glass-card p-10 rounded-[3rem] flex flex-col justify-between group">
             <div className="flex justify-between items-start">
-               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                  <Target size={14} className={isGuest ? "text-yellow-500" : "text-blue-500"} /> 
-                  {isGuest ? "Market Signal" : "Resume Strength"}
-               </h3>
+               <div className="space-y-2">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                     <Target size={14} className={isGuest ? "text-yellow-500" : "text-blue-500"} /> 
+                     {isGuest ? "Market Signal" : "Resume Strength"}
+                  </h3>
+                  {renderStars(moduleRatings['ATS Engine'])}
+               </div>
                <div className="bg-white/5 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
                   <Info size={12} className="text-gray-500" />
                </div>
@@ -276,10 +300,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
          {/* Performance Metrics */}
          <div className="glass-card p-10 rounded-[3rem] flex flex-col justify-between group">
             <div className="flex justify-between items-start">
-               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                  <Activity size={14} className="text-purple-500" /> 
-                  {isGuest ? "Training Depth" : "Recent Assessment"}
-               </h3>
+               <div className="space-y-2">
+                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                     <Activity size={14} className="text-purple-500" /> 
+                     {isGuest ? "Training Depth" : "Recent Assessment"}
+                  </h3>
+                  {renderStars(moduleRatings['Live Interview Room'])}
+               </div>
             </div>
             
             {isGuest ? (
@@ -304,10 +331,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       {!isGuest && (
         <div className="glass-card p-10 rounded-[3.5rem] border-white/5 relative overflow-hidden bg-white/[0.01]">
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-              <div>
+              <div className="space-y-2">
                  <h3 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
                     <LayoutGrid className="text-blue-500" /> Neural Skill Projection
                  </h3>
+                 {renderStars(moduleRatings['Neural Coding Lab'])}
                  <p className="text-xs text-gray-500 mt-2 font-medium">Visualizing your depth and career readiness across industry tiers.</p>
               </div>
               <div className="flex items-center gap-6 bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -434,9 +462,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div className="glass-card p-10 rounded-[3.5rem] overflow-hidden">
          <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-10 flex items-center gap-2"><Activity size={14} /> Neural Transmission Logs</h3>
          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse">
                <thead>
-                  <tr className="border-b border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                  <tr className="border-b border-white/5 text-[9px] font-black text-gray-500 uppercase tracking-widest">
                      <th className="pb-6 px-4">Timestamp</th><th className="pb-6 px-4">Operation</th><th className="pb-6 px-4 text-center">Score Index</th><th className="pb-6 px-4 text-right">Actions</th>
                   </tr>
                </thead>

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import SessionPDF from './SessionPDF';
 import { useCareerStore } from '../store/useCareerStore';
+import ModuleFeedback from './ModuleFeedback';
 
 interface InterviewDebriefProps {
   report: any;
@@ -15,10 +16,10 @@ interface InterviewDebriefProps {
 const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart, onDashboard }) => {
   const [displayScore, setDisplayScore] = useState(0);
   const [openQ, setOpenQ] = useState<number | null>(null);
+  const [showFeedback, setShowFeedback] = useState(true);
   const navigate = useNavigate();
   const { sessions, resumeData } = useCareerStore();
   
-  // Get the most recent session (which is the one we just completed)
   const currentSession = sessions[0];
   
   useEffect(() => {
@@ -48,7 +49,6 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart, 
         <div className="glass-card p-16 rounded-[4rem] border-white/10 text-center relative overflow-hidden bg-black/40">
            <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: gradeColor }}></div>
            
-           {/* Nervousness Badge */}
            {report.nervousness_label && (
              <div className="absolute top-8 right-8">
                 <div className={`px-5 py-2.5 rounded-full border font-black text-[10px] uppercase tracking-widest flex items-center gap-3 shadow-2xl backdrop-blur-md
@@ -69,7 +69,6 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart, 
            </div>
            <p className="text-xl font-bold text-gray-300 italic">"{report.summary}"</p>
            
-           {/* DOWNLOAD TRANSCRIPT BUTTON */}
            <div className="mt-12 flex justify-center">
               {currentSession && (
                 <PDFDownloadLink
@@ -99,6 +98,12 @@ const InterviewDebrief: React.FC<InterviewDebriefProps> = ({ report, onRestart, 
               </div>
            </div>
         </div>
+
+        {showFeedback && (
+           <div className="flex justify-center">
+              <ModuleFeedback module="Live Interview Room" session_id={currentSession?.id} onClose={() => setShowFeedback(false)} />
+           </div>
+        )}
 
         <div className="space-y-4">
            {report.answer_breakdown?.map((item: any, i: number) => (
